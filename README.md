@@ -1,3 +1,20 @@
 # Tangle
 The Tangle Cryptocurrency Ecosystem
-** IN PROGRESS **
+
+Roadmap:
+- ConnectWallet/Mobile App support
+- /biz/ ads
+- BSC <-> AVAX DEX-Bridge
+- All other DEX-Bridges
+- Update Meta UI and features
+    - discord Meta mint/offer/bid/buy/withdraw tx bot announcements
+    - offerTokenForSale
+    - buyToken
+    - enterBidForToken
+    - withdrawBidForToken
+    - acceptBidForToken
+    - try to pull token logo from TrustWallet repo, if it exists, Meta NFTs with valid logos should be worth a bit
+    - (?) add list of Trust Wallet verified addresses with logos to website, like cryptopunks has a list of images and if they are for sale, have bid, etc. to let people know what to buy 
+- Upgrade Swap
+- Forutsi
+- Hand out flyers
