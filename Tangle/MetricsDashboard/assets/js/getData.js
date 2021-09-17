@@ -1,13 +1,8 @@
-let fs = require("fs");
 let updateData = require("./updateData.js");
 
 let getData = () => {
-    let data;
-    try {
-        data = JSON.parse(fs.readFileSync("./data", "utf-8"));
-    } catch (e) {}
-    if (!data) {
-        data = {
+    if (!Object.keys(global.tangleMetrics).length) {
+        global.tangleMetrics = {
             updating: true,
             initialized: false,
             lastUpdate: parseInt(Date.now() / 1000),
@@ -74,16 +69,14 @@ let getData = () => {
                 piecesPerUnit: null
             }
         };
-        fs.writeFileSync("./data", JSON.stringify(data));
-        updateData(data);
-        return data;
+        updateData(global.tangleMetrics);
+        return global.tangleMetrics;
     } else {
-        if (parseInt(Date.now() / 1000) - data.lastUpdate >= 60 && !data.updating) {
-            data.updating = true;
-            fs.writeFileSync("./data", JSON.stringify(data));
-            updateData(data);
+        if (parseInt(Date.now() / 1000) - global.tangleMetrics.lastUpdate >= 60 && !global.tangleMetrics.updating) {
+            global.tangleMetrics.updating = true;
+            updateData(global.tangleMetrics);
         }
-        return data;
+        return global.tangleMetrics;
     }
 };
 

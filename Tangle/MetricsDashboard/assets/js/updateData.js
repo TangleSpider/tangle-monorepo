@@ -1,4 +1,3 @@
-let fs = require("fs");
 let evmJsonRpcRequest = require("./evmJsonRpcRequest.js");
 let getEnv = require("./getEnv.js");
 let sig = require("./sig.js");
@@ -15,8 +14,7 @@ let call = async (rpcUrl, sigText, pairAddress, extraData = '') => {
     return rpcResponse.result;
 };
 
-let updateData = async data => {
-    console.log("updating data");
+let updateData = async () => {
     for (let [i, a] of
         [["0x1A610A2AE3eb219797A471aC62904e1269Ab89B2", "ETH_TNGL"],
         ["0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc", "ETH_USD"],
@@ -29,7 +27,7 @@ let updateData = async data => {
         ["0xb3b030f1494dcf1872152460c0e9c8b9ab74b39b", "ARB_TNGL"],
         ["0x905dfcd5649217c42684f23958568e533c711aa3", "ARB_USD"]].entries()
     ) {
-        data.reserves[a[1]] = await call(
+        global.tangleMetrics.reserves[a[1]] = await call(
             getEnv(["ETH", "BSC", "FTM", "AVAX", "ARB"][parseInt(i / 2)] + "_RPC_URL"),
             "getReserves()",
             a[0]
@@ -49,7 +47,7 @@ let updateData = async data => {
             "startTime",
             "timeFromInitToLastRewardChange"]
         ) {
-            data[a[0] + "_TNGL"][b] = await Promise.all(
+            global.tangleMetrics[a[0] + "_TNGL"][b] = await Promise.all(
                 [0, 1, 2].map(async i => {
                     return await call(
                         getEnv(a[0] + "_RPC_URL"),
@@ -60,28 +58,26 @@ let updateData = async data => {
                 })
             );
         }
-        data[a[0] + "_TNGL"]["totalRewardableEvents2"] = await call(
+        global.tangleMetrics[a[0] + "_TNGL"]["totalRewardableEvents2"] = await call(
             getEnv(a[0] + "_RPC_URL"),
             "totalRewardableEvents(uint256)",
             a[1],
             '2'.padStart(64, '0')
         );
-        data[a[0] + "_TNGL"]["totalLPSupply"] = await call(
+        global.tangleMetrics[a[0] + "_TNGL"]["totalLPSupply"] = await call(
             getEnv(a[0] + "_RPC_URL"),
             "totalSupply()",
             a[2]
         );
-        data[a[0] + "_TNGL"]["piecesPerUnit"] = await call(
+        global.tangleMetrics[a[0] + "_TNGL"]["piecesPerUnit"] = await call(
             getEnv(a[0] + "_RPC_URL"),
             "piecesPerUnit()",
             a[1]
         );
     }
-    data.lastUpdate = parseInt(Date.now() / 1000);
-    data.updating = false;
-    data.initialized = true;
-    fs.writeFileSync("./data", JSON.stringify(data));
-    console.log("data updated!");
+    global.tangleMetrics.lastUpdate = parseInt(Date.now() / 1000);
+    global.tangleMetrics.updating = false;
+    global.tangleMetrics.initialized = true;
 };
 
 module.exports = exports = updateData;
