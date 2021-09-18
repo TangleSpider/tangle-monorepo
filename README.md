@@ -9,6 +9,7 @@ Roadmap:
 - Website/App updates:
     - Don't let people collect X addresses with distribution tool if they have less than X Tangle
     - Indicator for current LP staked vs (current LP staked + current LP unstaked) for staking slider 
+    - Add Reward Breakdown %s for % of reward points in a category
 - All other DEX-Bridges
 - Update Meta UI and features
     - discord Meta mint/offer/bid/buy/withdraw tx bot announcements
