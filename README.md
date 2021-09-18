@@ -2,8 +2,9 @@
 The Tangle Cryptocurrency Ecosystem
 
 Roadmap:
-- ConnectWallet/Mobile App support
+- ConnectWallet/Mobile App support (Mobile app support DONE, ConnectWallet on hold due to ConnectWallet instability)
 - /biz/ ads (STARTED, anyone can request a new /biz/ ad for Tangle with a pull request in the media/bizAds folder) 
+- Metrics Dashboard (DONE)
 - BSC <-> AVAX DEX-Bridge
 - All other DEX-Bridges
 - Update Meta UI and features
