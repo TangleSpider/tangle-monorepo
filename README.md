@@ -6,6 +6,7 @@ Roadmap:
 - /biz/ ads (STARTED, anyone can request a new /biz/ ad for Tangle with a pull request in the media/bizAds folder) 
 - Metrics Dashboard (DONE)
 - BSC <-> AVAX DEX-Bridge
+- Upgrade Swap
 - Website/App updates:
     - Don't let people collect X addresses with distribution tool if they have less than X Tangle
     - Indicator for current LP staked vs (current LP staked + current LP unstaked) for staking slider 
@@ -20,6 +21,5 @@ Roadmap:
     - acceptBidForToken
     - try to pull token logo from TrustWallet repo, if it exists, Meta NFTs with valid logos should be worth a bit
     - (?) add list of Trust Wallet verified addresses with logos to website, like cryptopunks has a list of images and if they are for sale, have bid, etc. to let people know what to buy 
-- Upgrade Swap
 - Forutsi
 - Hand out flyers
