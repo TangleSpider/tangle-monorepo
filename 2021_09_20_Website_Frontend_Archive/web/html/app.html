@@ -1,0 +1,39 @@
+<!-- development version, includes helpful console warnings -->
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <script src="https://unpkg.com/bignumber.js@9.0.1/bignumber.min.js"></script>
+  <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.5/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/qrcode-modal@1.6.5/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+</head>
+<body
+  style=
+    "color: #211f;
+    margin: 0;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(#faa8, transparent),linear-gradient(to top left, #afa8, transparent),linear-gradient(to top right, #aafa, transparent),radial-gradient(#fff, #fff0);
+    background-blend-mode: lighten;
+    background-attachment: fixed;"
+>
+  <div id="app"></div>
+    <!--Simplifying HTML to put everything in components, no CSS will be used.
+    <img class="tangleLogo" src="tangleLogo.svg">
+    <available-rewards-component
+      :amount=amount
+    ></available-rewards-component>
+    <earn-rewards-component
+      class="earnRewardsComponent"
+    ></earn-rewards-component>
+  </div> -->
+  <!-- An example of how to make arbitrary shapes using svg and polygon
+  <svg x="0px" y="0px" viewBox="0 0 40 2.414" style="margin-top: 20px">
+		<polygon fill="#211f" points="0,0 19,0 20,1 21,0 40,0 40,1 21.414,1 20,2.414 18.586,1 0,1"></polygon>
+	</svg> -->
+</body>
+
+<script type="module" src="../../app.js"></script>

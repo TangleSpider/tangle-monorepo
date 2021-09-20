@@ -1,0 +1,80 @@
+<head>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+	<link rel='stylesheet' href='../css/orbetStylesheet.css'>
+</head>
+<body>
+
+	<div id="mask">
+	</div>
+
+	<div id="createBetMenuContainer" class="menuContainer">
+		<div id="createBetMenu" class="menu">
+			<div id="createBetMenuHeader">
+				Create Bet
+			</div>
+			<div id="createBetMenuBody" class="menuBody">
+				<div id="createBetMenuInputContainer" class="menuBodyContainer">
+					<div class="createBetMenuInputHeader">
+						Observed Wallet Address
+					</div>
+					<div class="createBetMenuInputContainer">
+						<input id="observedWalletAddress" class="createBetMenuInput" placeholder="0x000...00">
+					</div>
+					<div class="createBetMenuInputHeader">
+						Observed Token Address
+					</div>
+					<div class="createBetMenuInputContainer">
+						<input id="observedTokenAddress" class="createBetMenuInput" placeholder="0x000...00">
+					</div>
+					<div class="createBetMenuInputHeader">
+						Threshold
+					</div>
+					<div class="createBetMenuInputContainer">
+						<input id="threshold" class="createBetMenuInput" placeholder="0.00000000">
+					</div>
+					<div class="createBetMenuInputHeader">
+						Expiry Date
+					</div>
+					<div class="createBetMenuInputContainer">
+						<input id="expiry" class="createBetMenuInput" placeholder="yyyy/mm/dd hh:mm:ss AM/PM">
+					</div>
+				</div>
+			</div>
+				<div id="createBetButtonContainer" class="createBetButtonContainer">
+					<div id="createBetButtonLoaderOffset"></div>
+					<button id="createBetButton" class="createBetButton">Connect Wallet</button>
+					<div id="createBetButtonLoader" class="loader"></div>
+				</div>
+		</div>
+	</div>
+
+	<div id="txHistoryMenuContainer" class="menuContainer">
+		<div id="txHistoryMenu" class="menu">
+			<div id="createBetMenuHeader">
+				Transaction History
+			</div>
+			<div id="txHistoryMenuBody" class="menuBody">
+				<div id="txHistoryMenuBodyContainer" class="menuBodyContainer">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="contentContainer">
+		<h1>orbet</h1>
+		<div class="createBetButtonContainer">
+			<button id="createBetMenuButton" class="createBetButton">Create Bet</button>
+		</div>
+		<div id="footer">
+			<div id="footerDivider" class="rowDivider"></div>
+			<button id="txHistoryButton" class="createBetButton">Tx History (0 Pending)</button>
+		</div>
+	</div>
+
+	<script src="../js/ethjs.min.js"></script>
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/orbet.js"></script>
+
+</body>
+
