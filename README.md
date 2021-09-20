@@ -2,9 +2,9 @@
 The Tangle Cryptocurrency Ecosystem
 
 Roadmap:
-- ConnectWallet/Mobile App support (Mobile app support DONE, ConnectWallet on hold due to ConnectWallet instability)
-- /biz/ ads (STARTED, anyone can request a new /biz/ ad for Tangle with a pull request in the media/bizAds folder) 
-- Metrics Dashboard (DONE)
+- (Metamask app DONE, ConnectWallet on hold) ConnectWallet/Mobile App support 
+- (DONE, anyone can request a new /biz/ ad for Tangle with a pull request in the media/bizAds folder) /biz/ ads
+- (DONE) Metrics Dashboard 
 - BSC <-> AVAX DEX-Bridge
 - Upgrade Swap
     - This is a list of things to add to the final version of Tangle:
@@ -14,7 +14,7 @@ Roadmap:
     - Donate function needs to emit an event.
     - Buying/selling Tangle (having it transferred to address A) should mark A as having received Tangle.
 - Website/App updates:
-    - Limit collected addresses to 250, some chains cannot handle 500 (FIXED). 
+    - (FIXED) Limit collected addresses to 250, some chains cannot handle 500 airdrops
     - Don't let people collect X addresses with distribution tool if they have less than X Tangle
     - Indicator for current LP staked vs (current LP staked + current LP unstaked) for staking slider 
     - Add Reward Breakdown %s for % of reward points in a category
