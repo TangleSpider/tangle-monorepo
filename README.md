@@ -7,7 +7,13 @@ Roadmap:
 - Metrics Dashboard (DONE)
 - BSC <-> AVAX DEX-Bridge
 - Upgrade Swap
+    - This is a list of things to add to the final version of Tangle:
+    - Upgradable contract. Upgrades must be time-delayed and can only be done by the upgrader. Address of the Upgrader can be changed to a governance contract in the future.
+    - Fix the withdrawRewards bug. It is not critical, but severe enough to warrant an upgrade. changeRewardMax ID in argument 1 and 2 must be equal.
+    - Add tracking and analytical variables: totalRewardsWithdrawn per category, event emissions for reward withdrawals include the reward category that is being withdrawn from. Maybe find a way to lump multiple reward withdrawals so that there's only 1 event emission. In general find ways to reduce the amount of event emissions in favor of fewer but more detailed emissions.
+    - Donate function needs to emit an event.
 - Website/App updates:
+    - Limit collected addresses to 250, some chains cannot handle 500 (FIXED). 
     - Don't let people collect X addresses with distribution tool if they have less than X Tangle
     - Indicator for current LP staked vs (current LP staked + current LP unstaked) for staking slider 
     - Add Reward Breakdown %s for % of reward points in a category
