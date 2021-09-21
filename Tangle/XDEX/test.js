@@ -20,58 +20,64 @@ let initProcess = (name, func) => {
     processes[name].interval = setInterval(processes[name].start.bind(processes[name]), 1000);
 }
 
-let estimateGas = async (rpcUrl, port, sigText, from, to, extraData = '') => {
-    console.log(await evmJsonRpcRequest({
+let estimateAndSaveGas = async (queueObject, whichTx) => {
+    let { rpcUrl, port, from, to, sigText, data, id } = queueObject;
+    let gasEstimate = await evmJsonRpcRequest({
         rpcUrl: rpcUrl,
         port: port,
         method: "eth_estimateGas",
         params: [{
             from: from,
             to: to,
-            data: sig(sigText) + extraData
+            data: sig(sigText) + data
         }]
-    }));
+    });
+    gasEstimate = "0x" + gasEstimate.result.substr(2).padStart(64, '0');
+    connection.query(
+        `update pendingAddLiquidityRequests set
+        gas0 = "` + gasEstimate + `",
+        timestamp = ` + Date.now() + `
+        where id = ` + id + `;`,
+    (err, res2, fields) => {
+        if (err) {
+            throw err;
+        } else {
+            console.log(id, gasEstimate);
+            connection.query(`select gas0, gas1 from pendingAddLiquidityRequests where id = ` + id + `;`,
+            (err, res, fields) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(res, id, gasEstimate);
+                    if (parseInt(res[0].gas0)/* && parseInt(res[0].gas0)*/) {
+                        queueObject.gas0 = res[0].gas[0];
+                        //queueObject.gas1 = res[0].gas[1];
+                        calculateTanglePayment(queueObject);
+                    }
+                }
+            });
+        }
+    });
 };
+
+let calculateTanglePayment = async queueObject => {
+    console.log(queueObject);
+});
 
 initProcess(
     "getliquidityAddRequestId",
     async function (queueObject) {
         let next = () => {
-
-            // things to do when process is finished
-
             if (this.queue.length) this.process(this.queue[0]);
             if (!this.queue.length) this.running = false;
         };
         this.queue.shift();
-
-        // things to do during processing
         queueObject.id = await getPendingLiquidityAddId();
-        //console.log(id);
-        /*await estimateGas(
-            getEnv("BSC_RPC_URL"),
-            "transferFrom(address,address,uint256,uint256)",
-            queueObject.relayerAddress,
-            queueObject.relayerContractAddress,
-            queueObject.msgSender + queueObject.relayerContractAddress + transferAmount
-        );
-        console.log(g0);*/
-        liquidityAddRequest(queueObject);
+        estimateAndSaveGas(queueObject, 0);
+        //estimateAndSaveGas(queueObject, 1);
         next();
     }
 );
-
-let liquidityAddRequest = async (queueObject) => {
-    console.log(queueObject.id);
-    console.log(await estimateGas(
-        "localhost/",
-        8000,
-        "transferFrom(address,address,uint256,uint256)",
-        queueObject.relayerAddress,
-        queueObject.relayerContractAddress,
-        queueObject.data//msgSender + queueObject.relayerContractAddress + queueObject.transferAmount
-    ));
-};
 
 let getPendingLiquidityAddId = () => {
     return new Promise((resolve, reject) => {
@@ -80,7 +86,20 @@ let getPendingLiquidityAddId = () => {
                 reject(err);
             } else {
                 if (res.length) {
-                    connection.query("insert into pendingAddLiquidityRequests (id) values (" + parseInt(res[0].id) + ")", (err, res2, fields) => {
+                    connection.query(
+                        `update pendingAddLiquidityRequests set
+                        paymentAmount = default,
+                        gas0 = default,
+                        gas1 = default,
+                        status0 = default,
+                        status1 = default,
+                        chain0 = default,
+                        chain1 = default,
+                        amount0 = default,
+                        amount1 = default,
+                        timestamp = ` + Date.now() + `
+                        where id = ` + parseInt(res[0].id) + `;`,
+                    (err, res2, fields) => {
                         if (err) {
                             reject(err);
                         } else {
@@ -120,15 +139,10 @@ let getPendingLiquidityAddId = () => {
 };
 
 processes["getliquidityAddRequestId"].queue.push({
-    relayerAddress: "0xe1a811bDFb656Dc47a7262dbdE31071d9A916B1a",
-    relayerContractAddress: "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3",
+    rpcUrl: "localhost/",
+    port: 8000,
+    sigText: "transferFrom(address,address,uint256,uint256)",
+    from: "0xe1a811bDFb656Dc47a7262dbdE31071d9A916B1a", // relayerAddress
+    to: "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3", // relayerContractAddress
     data: "000000000000000000000000e1a811bdfb656dc47a7262dbde31071d9a916b1a0000000000000000000000002f96f61a027b5101e966ec1ba75b78f353259fb300000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000000"
 });
-
-/*(async () => {
-    for (let i = 0; i < 10; i++) {
-        (async () => {
-            processes["getliquidityAddRequestId"].queue.push({});
-        })();
-    }
-})();*/

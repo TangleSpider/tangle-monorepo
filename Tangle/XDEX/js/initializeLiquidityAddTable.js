@@ -23,7 +23,8 @@ let initTable = connection => {
             chain0 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
             chain1 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
             amount0 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
-            amount1 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000");`,
+            amount1 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
+            timestamp bigint not null default 0);`,
         (err, res, field) => {
             if (err) {
                 console.log(err);
