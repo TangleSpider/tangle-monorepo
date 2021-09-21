@@ -1,8 +1,9 @@
 require("dotenv").config();
 let connection = require("./js/getMysqlConnection.js");
+require("./js/initializeLiquidityAddTable.js")(connection);
 let getEnv = require("./js/getEnv.js");
 let evmJsonRpcRequest = require("./js/evmJsonRpcRequest.js");
-require("./js/initializeLiquidityAddTable.js")(connection);
+let sig = require("./js/sig.js");
 
 let processes = {};
 
@@ -19,8 +20,21 @@ let initProcess = (name, func) => {
     processes[name].interval = setInterval(processes[name].start.bind(processes[name]), 1000);
 }
 
+let estimateGas = async (rpcUrl, port, sigText, from, to, extraData = '') => {
+    console.log(await evmJsonRpcRequest({
+        rpcUrl: rpcUrl,
+        port: port,
+        method: "eth_estimateGas",
+        params: [{
+            from: from,
+            to: to,
+            data: sig(sigText) + extraData
+        }]
+    }));
+};
+
 initProcess(
-    "liquidityAddRequest",
+    "getliquidityAddRequestId",
     async function (queueObject) {
         let next = () => {
 
@@ -32,14 +46,32 @@ initProcess(
         this.queue.shift();
 
         // things to do during processing
-        let id = await getPendingLiquidityAddId();
-        console.log(id);
-        //let g0 = await estimateGas(T.transferFrom(P, C, A, M)
-        //console.log(g0);
-
+        queueObject.id = await getPendingLiquidityAddId();
+        //console.log(id);
+        /*await estimateGas(
+            getEnv("BSC_RPC_URL"),
+            "transferFrom(address,address,uint256,uint256)",
+            queueObject.relayerAddress,
+            queueObject.relayerContractAddress,
+            queueObject.msgSender + queueObject.relayerContractAddress + transferAmount
+        );
+        console.log(g0);*/
+        liquidityAddRequest(queueObject);
         next();
     }
 );
+
+let liquidityAddRequest = async (queueObject) => {
+    console.log(queueObject.id);
+    console.log(await estimateGas(
+        "localhost/",
+        8000,
+        "transferFrom(address,address,uint256,uint256)",
+        queueObject.relayerAddress,
+        queueObject.relayerContractAddress,
+        queueObject.data//msgSender + queueObject.relayerContractAddress + queueObject.transferAmount
+    ));
+};
 
 let getPendingLiquidityAddId = () => {
     return new Promise((resolve, reject) => {
@@ -87,12 +119,16 @@ let getPendingLiquidityAddId = () => {
     });
 };
 
-console.log(getEnv("BSC_RPC_URL"));
+processes["getliquidityAddRequestId"].queue.push({
+    relayerAddress: "0xe1a811bDFb656Dc47a7262dbdE31071d9A916B1a",
+    relayerContractAddress: "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3",
+    data: "000000000000000000000000e1a811bdfb656dc47a7262dbde31071d9a916b1a0000000000000000000000002f96f61a027b5101e966ec1ba75b78f353259fb300000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000000"
+});
 
 /*(async () => {
     for (let i = 0; i < 10; i++) {
         (async () => {
-            processes["liquidityAddRequest"].queue.push({});
+            processes["getliquidityAddRequestId"].queue.push({});
         })();
     }
 })();*/

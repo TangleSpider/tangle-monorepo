@@ -1,7 +1,8 @@
-let https = require('https')
+let http = require('http')
+ //let https = require('https')
 
 let evmJsonRpcRequest = async requestObject => {
-    let { rpcUrl, method, params } = requestObject;
+    let { rpcUrl, port, method, params } = requestObject;
     if (
         method == "eth_getBalance" ||
         method == "eth_getCode" ||
@@ -12,14 +13,14 @@ let evmJsonRpcRequest = async requestObject => {
     let requestPromise = new Promise((resolve, reject) => {
         let options = {
             host: rpcUrl.match(/[^\/]+/)[0],
-            port: 443,
+            port: port,
             path: rpcUrl.match(/\/.*/)[0],
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             }
         };
-        let req = https.request(options, res => {
+        let req = http.request(options, res => {
             let data = "";
             res.setEncoding("utf8");
             res.on("data", chunk => {
