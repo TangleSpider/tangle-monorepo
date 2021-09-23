@@ -2,7 +2,7 @@ let resetFlag = false;
 
 let resetTable = connection => {
     try {
-        connection.query("drop table pendingAddLiquidityRequests;", (err, res, field) => {
+        connection.query("drop table addLiquidityRequests;", (err, res, field) => {
             initTable(connection);
         });
     } catch (e) {
@@ -13,7 +13,7 @@ let resetTable = connection => {
 let initTable = connection => {
     try {
         connection.query(
-            `create table if not exists pendingAddLiquidityRequests (
+            `create table if not exists addLiquidityRequests (
             id int not null unique,
             paymentAmount char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
             gas0 char(66) not null default "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -35,8 +35,8 @@ let initTable = connection => {
     }
 };
 
-let initializeLiquidityAddTable = connection => {
+let initializeAddLiquidityRequests = connection => {
     resetFlag ? resetTable(connection) : initTable(connection);
 };
 
-module.exports = exports = initializeLiquidityAddTable;
+module.exports = exports = initializeAddLiquidityRequests;
