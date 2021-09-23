@@ -8,11 +8,81 @@ let keccak256 = require("@ethersproject/keccak256").keccak256;
 let evmJsonRpcRequest = require("./js/evmJsonRpcRequest.js");
 let sig = require("./js/sig.js");
 
+let sendResponse = async requestObject => {
+
+};
+let getBalance = async (requestObject, whichTx) => {
+    let evmJsonRpcRequestParameters = getChainData(requestObject.data.chains[whichTx]);
+    evmJsonRpcRequestParameters.method = "eth_getBalance";
+    evmJsonRpcRequestParameters.params = [evmJsonRpcRequestParameters.TangleRelayer]
+    requestObject.data.balances[whichTx] = (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result;
+    if (!requestObject.data.balances.map(balance => { return typeof balance == "string" }).reduce((c, p) => { return c && p })) return;
+    //
+    let ratios = [0, 1].map(i =>
+        "0x" + (BigInt(requestObject.data.balances[i]) /
+        BigInt(requestObject.data.gases[i]) /
+        BigInt(requestObject.data.gasPrices[i])).toString(16)
+    );
+    let minRatio = ratios.reduce((c, p) => { return c < p ? c : p });
+    let indexOfMinRatio = ratios.indexOf(minRatio);
+    requestObject.responseObject.paymentChain = requestObject.data.chains[indexOfMinRatio];
+    let p = (2 + 1);
+    requestObject.responseObject.paymentAmount = "0x" + (BigInt(requestObject.data.gases[indexOfMinRatio]) * BigInt(requestObject.data.gasPrices[indexOfMinRatio]) * BigInt(p)).toString(16);
+    console.log(({ res, ...notRes } = requestObject, notRes));
+    requestObject.res.json(requestObject.responseObject);
+};
+let getChainData = chain => {
+    let chainData = {};
+    switch (chain) {
+        case "0x000000000000000000000000000000000000000000000000000000000000000e":
+            chainData.whichProtocol = 0;
+            chainData.rpcUrl = "localhost/";
+            chainData.port = "8000";
+            chainData.TangleRelayerContract = "0xb6D0ae90e956E7AC1f86b925DD58aB99c6A957a9";
+            chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
+            break;
+        case "0x000000000000000000000000000000000000000000000000000000000000000f":
+            chainData.whichProtocol = 0;
+            chainData.rpcUrl = "localhost/";
+            chainData.port = "8001";
+            chainData.TangleRelayerContract = "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3";
+            chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
+            break;
+    }
+    return chainData;
+};
+let getGasPrice = async (requestObject, whichTx) => {
+    let evmJsonRpcRequestParameters = getChainData(requestObject.data.chains[whichTx]);
+    evmJsonRpcRequestParameters.method = "eth_gasPrice";
+    requestObject.data.gasPrices[whichTx] = (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result;
+    if (!requestObject.data.gasPrices.map(gasPrice => { return typeof gasPrice == "string" }).reduce((c, p) => { return c && p })) return;
+    requestObject.data.balances = [null, null];
+    //console.log(({ res, ...notRes } = requestObject, notRes));
+    [0, 1].forEach(i => { getBalance(requestObject, i) });
+};
+processes.init(
+    "determinePaymentAndChain",
+    async function (requestObject) {
+        let next = () => {
+            if (this.queue.length) this.process(this.queue[0]);
+            if (!this.queue.length) this.running = false;
+        };
+        this.queue.shift();
+        requestObject.data.gasPrices = [null, null];
+        [0, 1].forEach(i => { requestObject.data.gasPrices[i] = getGasPrice(requestObject, i); });
+        next();
+    }
+);
 let getEvmJsonRpcRequestParameters = (requestObject, whichTx) => {
+    let chainData = getChainData(requestObject.data.chains[whichTx]);
     let evmJsonRpcRequestParameters = {
+        whichProtocol: chainData.whichProtocol,
+        rpcUrl: chainData.rpcUrl,
+        port: chainData.port,
         method: "eth_estimateGas",
         params: [{
-            from: "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D", // TangleRelayer
+            from: chainData.TangleRelayer, // TangleRelayer
+            to: chainData.TangleRelayerContract,
             data:
                 sig("transferFrom(address,address,address,uint256,uint256,uint256)") +
                 requestObject.data.tokens[whichTx].substr(2).padStart(64, '0') +
@@ -21,17 +91,9 @@ let getEvmJsonRpcRequestParameters = (requestObject, whichTx) => {
     };
     switch (requestObject.data.chains[whichTx]) {
         case "0x000000000000000000000000000000000000000000000000000000000000000e": // P14
-            evmJsonRpcRequestParameters.whichProtocol = 0;
-            evmJsonRpcRequestParameters.rpcUrl = "localhost/";
-            evmJsonRpcRequestParameters.port = 8000;
-            evmJsonRpcRequestParameters.params[0].to = "0xb6D0ae90e956E7AC1f86b925DD58aB99c6A957a9"; // TangleRelayerContract
             evmJsonRpcRequestParameters.params[0].data += evmJsonRpcRequestParameters.params[0].to.substr(2).padStart(64, '0')
             break;
         case "0x000000000000000000000000000000000000000000000000000000000000000f": // P15
-            evmJsonRpcRequestParameters.whichProtocol = 0;
-            evmJsonRpcRequestParameters.rpcUrl = "localhost/";
-            evmJsonRpcRequestParameters.port = 8001;
-            evmJsonRpcRequestParameters.params[0].to = "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3"; // TangleRelayerContract
             evmJsonRpcRequestParameters.params[0].data += evmJsonRpcRequestParameters.params[0].to.substr(2).padStart(64, '0')
             break;
     }
@@ -45,18 +107,21 @@ let gestGas = async (requestObject, whichTx) => {
     let evmJsonRpcRequestParameters = getEvmJsonRpcRequestParameters(requestObject, whichTx);
     if (!requestObject.data.gases) requestObject.data.gases = [null, null];
     requestObject.data.gases[whichTx] = "0x" + (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result.substr(2).padStart(64, '0');
-    if (requestObject.data.gases.indexOf(null) != -1) return;
-    let p = BigInt(4 /* profitMargin */ + 1);
-    let paymentAmount = "0x" + (requestObject.data.gases.reduce((c, p) => { return BigInt(c) + BigInt(p); }) * p).toString(16).padStart(64, '0');
+    if (!requestObject.data.gases.map(gas => { return typeof gas == "string" }).reduce((c, p) => { return c && p })) return;
     let responseObject = {
         TangleRelayerContract: evmJsonRpcRequestParameters.params[0].to,
-        paymentAmount: paymentAmount,
-        id: requestObject.id,
-        chain: requestObject.data.chains[whichTx].replace(/(0x)0+/, "$1")
+        id: requestObject.id
     }
-    console.log("requestObject", ({ res, ...notRes } = requestObject, notRes));
-    console.log("responseObject", responseObject);
-    requestObject.res.json(responseObject);
+    //evmJsonRpcRequestParameters.method = "eth_gasPrice";
+    //delete evmJsonRpcRequestParameters.params;
+    //let gasPrice = (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result;
+    //let p = BigInt(4 /* profitMargin */ + 1) * BigInt(gasPrice);
+    //let paymentAmount = "0x" + (requestObject.data.gases.reduce((c, p) => { return BigInt(c) + BigInt(p); }) * p).toString(16).padStart(64, '0');
+    //responseObject.paymentAmount = paymentAmount;
+    //console.log("requestObject", ({ res, ...notRes } = requestObject, notRes));
+    //console.log("responseObject", responseObject);
+    requestObject.responseObject = responseObject;
+    processes["determinePaymentAndChain"].queue.push(requestObject);
     /*connection.query(
         `update addLiquidityRequests set
         gas` + whichTx + ` = "` + gasEstimate + `",
@@ -212,7 +277,6 @@ processes.init(
         next();
     }
 );
-
 let handleAddLiquidityRequest = async requestObject => {
     let { chains, tokens } = requestObject.data;
     if (chains[1] + tokens[1] < chains[0] + tokens[0])
