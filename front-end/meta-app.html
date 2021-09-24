@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta content="Meta app" property="og:title" />
+    <title>Meta app</title>
+    <meta content="The Meta app, powered by Tangle" property="og:description" />
+    <meta content="https://tangl3.com/" property="og:url" />
+    <link href="https://example.com/" rel="canonical" />
+    <link href="./static/favicon.ico" rel="icon" />
+    <link href="./css/index.css" rel="stylesheet" />
+
+    <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+    <script type="text/javascript" src="./js/meta/body1.js"></script>
+  </head>
+  <body>
+    <div class="heading-container">
+      <header>
+        <nav>
+          <div class="nav-logo">
+            <a href="https://tangle.co.in">
+              <video autoplay loop muted>
+                <source src="./static/tangleRotate.webm" type="video/webm" />
+              </video>
+            </a>
+          </div>
+          <div class="nav-container">
+            <input type="checkbox" />
+              <span></span>
+              <span></span>
+              <span></span>
+              <div class="dropdown-container">
+                <ul class="menu-mobile">
+                  <li>
+                    <a href="https://tangl3.com/TangleWhitepaper.pdf" class="link" target="_blank">Whitepaper</a>
+                    <div class="underline"></div>
+                  </li>
+                  <li>
+                    <a href="#" class="link" target="_blank">Tangle App</a>
+                  </li>
+                  <li>
+                    <a href="#" class="link" target="_blank">What is Tangle?</a>
+                  </li>
+                  <li>
+                    <a href="#" class="link" target="_blank">Tangle dashboard</a>
+                    <div class="underline"></div>
+                  </li>
+                  <li>
+                    <a href="./meta-app.html" class="link" target="_blank">Meta App</a>
+                  </li>
+                  <li>
+                    <a href="./meta.html" class="link" target="_blank">What is Meta?</a>
+                    <div class="underline"></div>
+                  </li>
+                  <li>
+                    <a href="#" class="link" target="_blank">What is Xdex?</a>
+                    <div class="underline"></div>
+                  </li>
+                </ul>
+              </div>
+          </div>
+        </nav>
+      </header>
+      <div class="heading-title-container">
+        <h1 class="heading">Meta app</h1>
+      </div>
+      <div class="heading-underline"></div>
+    </div>
+    <main class="main-image">
+      <span class="main-image-background">
+        <div class="main-container">
+          <div>
+            <div class="subheading-title-container">
+              <h3 class="subheading">Claim Address</h1>
+            </div>
+            <div class="heading-underline"></div>
+          </div>
+          <section>
+            <div id="app"></div>
+          </section>
+          <div>
+            <div class="subheading-title-container">
+              <h3 class="subheading">Tax</h1>
+            </div>
+            <div class="heading-underline"></div>
+          </div>
+          <section>
+            There is a 1% tax for sellers for any address, however, this tax can
+            be evaded if the seller has at least 5,000,000 Tangle.
+          </section>
+          <div>
+            <div class="subheading-title-container">
+              <h3 class="subheading">Meta contract addresses</h1>
+            </div>
+            <div class="heading-underline"></div>
+          </div>
+          <section>
+            <div class="code-text">ETH: 0xE25f7f27ce75c12613ff3415E450450fEA690fC3</div>
+            <div class="code-text">AVAX: 0xD94B630e42ce8C7f70F19EEA7CAe8e0e6d71bBB0</div>
+            <div class="code-text">BSC: 0xDE120065689efa8FFecabc9f622890e2D1E338CB</div>
+            <div class="code-text">FTM: 0x87bbA222642e6d5a09eaa90c03c2724757EF851c</div>
+          </section>
+          <div>
+            <div class="subheading-title-container">
+              <h3 class="subheading">Coming soon</h1>
+            </div>
+            <div class="heading-underline"></div>
+          </div>
+          <section>
+            Buying, Selling, Bidding, and automatic Trust Wallet information pulling logo.png and info.json
+          </section>
+        </div>
+      </span>
+    </main>
+    <footer>
+      <a href="https://t.me/TangleCoin" target="_blank">
+        <img src="./static/icon-telegram.png" alt="telegram icon" />
+      </a>
+      <a href="https://twitter.com/TangleCoin" target="_blank">
+        <img src="./static/icon-twitter.png" alt="twitter icon" />
+      </a>
+      <a href="https://github.com/TangleSpider/Tangle" target="_blank">
+        <img src="./static/icon-github.png" alt="github icon" />
+      </a>
+      <a href="https://discord.gg/kNx8rmYCWk" target="_blank">
+        <img src="./static/icon-discord.png" alt="discord icon" />
+      </a>
+    </footer>
+  </body>
+</html>
+
+<script>
+    let app = new Vue({
+      el: "#app",
+      template: `
+        <div>
+            <body-1 />
+        </div>`,
+    });
+  </script>
