@@ -60,13 +60,15 @@ Vue.component("add-liquidity-test-button", {
             .then(response => { return response.json(); })
             .then(async response => {
                 console.log(response);
+                let err = await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: response.paymentChain.replace(/(0x)0+/, "$1") }] });
+                if (err) console.log(err);
                 let blockData = await ethereum.request({ method: "eth_getBlockByNumber", params: [await ethereum.request({ method: "eth_blockNumber", params: []}), true]});
                 let txParams = {
                     from: ethereum.selectedAddress,
                     to: response.TangleRelayerContract,
                     value: response.paymentAmount.replace(/(0x)0+/, "$1"),
                     data:
-                        "0x16b2d995" +
+                        "0xd390f974" +
                         response.id.toString(16).padStart(64, '0') +
                         '0'.toString(16).padStart(64, '0')
                 };

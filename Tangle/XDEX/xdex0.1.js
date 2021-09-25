@@ -1,6 +1,7 @@
 let server = require("./js/server.js");
 let connection = require("./js/getMysqlConnection.js");
 require("./js/initializeAddLiquidityRequestsTable.js")(connection);
+require("./js/initializeLastProcessedBlocksTable.js")(connection);
 require("./js/initializeLpBalancesTable.js")(connection);
 require("./js/initializePairsTable.js")(connection);
 let processes = require("./js/processes.js");
@@ -8,9 +9,10 @@ let keccak256 = require("@ethersproject/keccak256").keccak256;
 let evmJsonRpcRequest = require("./js/evmJsonRpcRequest.js");
 let sig = require("./js/sig.js");
 
-let sendResponse = async requestObject => {
-
+let mem = {
+    lastProcessedPaymentBlock: null
 };
+
 let getBalance = async (requestObject, whichTx) => {
     let evmJsonRpcRequestParameters = getChainData(requestObject.data.chains[whichTx]);
     evmJsonRpcRequestParameters.method = "eth_getBalance";
@@ -25,9 +27,11 @@ let getBalance = async (requestObject, whichTx) => {
     );
     let minRatio = ratios.reduce((c, p) => { return c < p ? c : p });
     let indexOfMinRatio = ratios.indexOf(minRatio);
+    indexOfMinRatio = 1; // manual testing
     requestObject.responseObject.paymentChain = requestObject.data.chains[indexOfMinRatio];
     let p = (2 + 1);
     requestObject.responseObject.paymentAmount = "0x" + (BigInt(requestObject.data.gases[indexOfMinRatio]) * BigInt(requestObject.data.gasPrices[indexOfMinRatio]) * BigInt(p)).toString(16);
+    requestObject.responseObject.TangleRelayerContract = getChainData(requestObject.data.chains[indexOfMinRatio]).TangleRelayerContract;
     console.log(({ res, ...notRes } = requestObject, notRes));
     requestObject.res.json(requestObject.responseObject);
 };
@@ -38,14 +42,14 @@ let getChainData = chain => {
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8000";
-            chainData.TangleRelayerContract = "0xb6D0ae90e956E7AC1f86b925DD58aB99c6A957a9";
+            chainData.TangleRelayerContract = "0x6E8c185F2Fb1C2Dd07B052d107c47F9287ea0AF2";
             chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
             break;
         case "0x000000000000000000000000000000000000000000000000000000000000000f":
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8001";
-            chainData.TangleRelayerContract = "0x2F96f61a027B5101E966EC1bA75B78f353259Fb3";
+            chainData.TangleRelayerContract = "0xAf1843657F00F8C048139B7103784fdeFC403702";
             chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
             break;
     }
@@ -108,10 +112,6 @@ let gestGas = async (requestObject, whichTx) => {
     if (!requestObject.data.gases) requestObject.data.gases = [null, null];
     requestObject.data.gases[whichTx] = "0x" + (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result.substr(2).padStart(64, '0');
     if (!requestObject.data.gases.map(gas => { return typeof gas == "string" }).reduce((c, p) => { return c && p })) return;
-    let responseObject = {
-        TangleRelayerContract: evmJsonRpcRequestParameters.params[0].to,
-        id: requestObject.id
-    }
     //evmJsonRpcRequestParameters.method = "eth_gasPrice";
     //delete evmJsonRpcRequestParameters.params;
     //let gasPrice = (await evmJsonRpcRequest(evmJsonRpcRequestParameters)).result;
@@ -120,7 +120,6 @@ let gestGas = async (requestObject, whichTx) => {
     //responseObject.paymentAmount = paymentAmount;
     //console.log("requestObject", ({ res, ...notRes } = requestObject, notRes));
     //console.log("responseObject", responseObject);
-    requestObject.responseObject = responseObject;
     processes["determinePaymentAndChain"].queue.push(requestObject);
     /*connection.query(
         `update addLiquidityRequests set
@@ -272,6 +271,9 @@ processes.init(
         };
         this.queue.shift();
         requestObject.id = await getPendingLiquidityAddId(requestObject);
+        requestObject.responseObject = {
+            id: requestObject.id
+        };
         //console.log(({ res, ...notRes } = requestObject, notRes));
         estimateAmounts(requestObject);
         next();
@@ -283,6 +285,88 @@ let handleAddLiquidityRequest = async requestObject => {
         for (key in requestObject.data) requestObject.data[key].reverse();
     processes["getliquidityAddRequestId"].queue.push(requestObject);
 };
+
+let paymentLogsFilterIds = {
+    P14: null,
+    P15: null
+};
+(async () => {
+    let lastProcessedPaymentsBlock = "0x" + (BigInt(await new Promise((resolve, reject) => {
+        connection.query(
+            `select lastProcessedPaymentsBlock from lastProcessedBlocks;`,
+        (err, res, field) => {
+            if (err) {
+                throw err;
+            } else {
+                resolve(res[0].lastProcessedPaymentsBlock);
+            }
+        });
+    })) + BigInt(1)).toString(16);
+    console.log(lastProcessedPaymentsBlock.replace(/0+(?!x|$)/, ""));
+    let chainData = await getChainData("0x000000000000000000000000000000000000000000000000000000000000000f");
+    chainData.method = "eth_newFilter";
+    chainData.params = [{
+        fromBlock: lastProcessedPaymentsBlock.replace(/0+(?!x|$)/, ""),
+        toBlock: "latest",
+        address: chainData.TangleRelayerContract,
+        topics: ["0x243f8b521882d823492f47c974aec93c6b1f81e3f30a1eb6a6d18bd2fecf975b"]
+    }]
+    console.log("TEST", await evmJsonRpcRequest(chainData))
+    paymentLogsFilterIds.P15 = (await evmJsonRpcRequest(chainData)).result;
+    console.log(paymentLogsFilterIds.P15);
+    chainData.method = "eth_getFilterLogs";
+    chainData.params = [paymentLogsFilterIds.P15];
+    let logs = (await evmJsonRpcRequest(chainData)).result;
+    let blockNumber = BigInt(0);
+    logs.forEach(log => {
+        let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
+        if (method == 0) {
+            if (BigInt("0x" + log.blockNumber.substr(2).padStart(64, '0')) > blockNumber)
+                blockNumber = "0x" + log.blockNumber.substr(2).padStart(64, '0');
+            console.log([id, method, value, "0x" + log.blockNumber.substr(2).padStart(64, '0')]);
+            connection.query(
+                `select paidAmount from addLiquidityRequests where
+                id = ` + parseInt(id),
+            (err, res, fields) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(res);
+                    console.log("0x" + (BigInt(res[0].paidAmount) + BigInt(value)).toString(16).padStart(64, '0'));
+                    connection.query(
+                        `update addLiquidityRequests set
+                        paidAmount = "` + "0x" + (BigInt(res[0].paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
+                        where id = ` + parseInt(id),
+                    (err, res, fields) => {
+                        if (err) {
+                            throw err;
+                        } else {
+                            console.log(blockNumber);
+                            connection.query(
+                                `update lastProcessedBlocks set
+                                lastProcessedPaymentsBlock = "` + blockNumber + `"
+                                where chain = "` + "0x000000000000000000000000000000000000000000000000000000000000000f" + `";`,
+                            (err, res, fields) => {
+                                if (err) throw err;
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+})();
+let getPaymentLogs = async chain => {
+
+};
+
+/*connection.query(
+    `update addLiquidityRequests set paidAmount = default where id = 0`,
+(err, res, fields) => {
+    if (err) {
+        throw err;
+    }
+});*/
 
 server.addPostHandler(
     "/xdexAddLiquidity",
