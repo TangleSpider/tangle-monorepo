@@ -69,8 +69,8 @@ Vue.component("add-liquidity-test-button", {
                     value: response.paymentAmount.replace(/(0x)0+/, "$1"),
                     data:
                         "0xd390f974" +
-                        response.id.toString(16).padStart(64, '0') +
-                        '0'.toString(16).padStart(64, '0')
+                        '0'.toString(16).padStart(64, '0') +
+                        response.id.toString(16).padStart(64, '0')
                 };
                 let gasEstimate = await ethereum.request({
                     method: "eth_estimateGas",

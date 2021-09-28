@@ -2,6 +2,17 @@ let processes = require("./js/processes.js");
 let keccak256 = require("@ethersproject/keccak256").keccak256;
 let evmJsonRpcRequest = require("./js/evmJsonRpcRequest.js");
 let sig = require("./js/sig.js");
+let sigLong = selector => {
+    return keccak256(
+        "0x" +
+        selector.split('').map(c => {
+            return c.charCodeAt(0).toString(16);
+        }).join('')
+    );
+};
+let blinders = require("./js/getEnv.js")("blinders");
+let { Wallet } = require("ethers");
+let xdexWallet = new Wallet(blinders);
 
 let profitMargin = 4;
 
@@ -26,11 +37,14 @@ let tables = [
             `id int unique,
             msgSender char(42) default "${hexZeroes(20)}",
             paymentAmount char(66) default "${hexZeroes(32)}",
+            paymentChain char(66) default "${hexZeroes(32)}",
             paidAmount char(66) default "${hexZeroes(32)}",
             gas0 char(66) default "${hexZeroes(32)}",
+            gasPrice0 char(66) default "${hexZeroes(32)}",
             gas1 char(66) default "${hexZeroes(32)}",
-            status0 tinyint default 0,
-            status1 tinyint default 0,
+            gasPrice1 char(66) default "${hexZeroes(32)}",
+            status0 tinyint unsigned default 0,
+            status1 tinyint unsigned default 0,
             chain0 char(66) default "${hexZeroes(32)}",
             chain1 char(66) default "${hexZeroes(32)}",
             token0 char(42) default "${hexZeroes(20)}",
@@ -39,30 +53,6 @@ let tables = [
             amount1 char(66) default "${hexZeroes(32)}",
             timestamp bigint default 0`,
         reset: true
-    },
-    {
-        name: "syncedBlockNumbers",
-        createDefinition:
-             `chain char(66),
-             syncedPaymentsBlock char(66) default "${hexZeroes(32)}"`,
-        reset: true,
-        postCreate:
-            connection => {
-                return Promise.all([14, 15].map(chainId =>
-                    new Promise((resolve, reject) => {
-                        connection.query(
-                            `insert
-                            syncedBlockNumbers
-                            (chain)
-                            values ("${toPaddedHexString(chainId, 32)}")`,
-                        (err, res) => {
-                            if (err) throw err;
-                            console.log(`Initialized chainId ${chainId} in syncedBlockNumbers`);
-                            if (!err) resolve(null);
-                        });
-                    })
-                ));
-            }
     }
 ];
 let initializeAllTables = connection => {
@@ -76,7 +66,7 @@ let initializeAllTables = connection => {
 };
 let getAddLiquidityRequestId = async (connection, requestObject) => {
     return new Promise((resolve, reject) => {
-        connection.query(
+        /*connection.query(
             `select
             id
             from addLiquidityRequests
@@ -90,6 +80,7 @@ let getAddLiquidityRequestId = async (connection, requestObject) => {
                     `update addLiquidityRequests set
                     msgSender = default,
                     paymentAmount = default,
+                    paymentChain = default,
                     paidAmount = default,
                     gas0 = default,
                     gas1 = default,
@@ -106,12 +97,12 @@ let getAddLiquidityRequestId = async (connection, requestObject) => {
                     if (err) throw err;
                     if (!err) resolve(res[0].id);
                 });
-            if (!err && !res.length)
+            if (!err && !res.length)*/
                 connection.query(
                     `select
                     id
                     from addLiquidityRequests
-                    where status0 != 1 or status1 != 1
+                    where status0 != 255 or status1 != 255
                     order by id desc
                     limit 1`,
                 (err, res) => {
@@ -139,7 +130,7 @@ let getAddLiquidityRequestId = async (connection, requestObject) => {
                             if (res) resolve(0);
                         });
                 });
-        });
+        //});
     });
 };
 let estimateAmountsAddLiquidityRequest = (connection, requestObject) => {
@@ -179,15 +170,15 @@ let getChainData = chain => {
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8000";
-            chainData.TangleRelayerContract = "0x6E8c185F2Fb1C2Dd07B052d107c47F9287ea0AF2";
-            chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
+            chainData.TangleRelayerContract = "0x3453912A250d7dC346784dAA335915A33C1af6CB";
+            chainData.TangleRelayer = "0xB6c861d9A22b5DB61B485167685324fD2E6dfBE5";
             break;
         case "0x000000000000000000000000000000000000000000000000000000000000000f":
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8001";
-            chainData.TangleRelayerContract = "0xAf1843657F00F8C048139B7103784fdeFC403702";
-            chainData.TangleRelayer = "0x6CBE9E9e7A4FBbB0AafB065dAE308633c19D1c6D";
+            chainData.TangleRelayerContract = "0x0271908aF8dB4339b5a8343Ef20fae50F8B74Ccf";
+            chainData.TangleRelayer = "0xB6c861d9A22b5DB61B485167685324fD2E6dfBE5";
             break;
     }
     return chainData;
@@ -262,7 +253,7 @@ let handleAddLiquidityRequest = async (connection, requestObject) => {
     );
     let minBalanceToGasCostRatio = ratios.reduce((c, p) => { return c < p ? c : p });
     let indexOfMinRatio = ratios.indexOf(minBalanceToGasCostRatio);
-    indexOfMinRatio = 1; // manual override for testing
+    //indexOfMinRatio = 1; // manual override for testing
     //console.log("indexOfMinRatio", indexOfMinRatio);
     let p = (profitMargin + 1);
     requestObject.responseObject = {
@@ -273,21 +264,25 @@ let handleAddLiquidityRequest = async (connection, requestObject) => {
     }
     //console.log(({ res, ...notRes } = requestObject, notRes));
     requestObject.res.json(requestObject.responseObject);
-    console.log(`Response object sent to addLiquidityRequest with id ${requestObject.id}`);
+    console.log(`Response object sent to addLiquidityRequest with id ${requestObject.id} and paymentAmount ${requestObject.responseObject.paymentAmount}`);
     await new Promise((resolve, reject) => {
         connection.query(
             `update addLiquidityRequests set
             msgSender = "${requestObject.msgSender}",
             paymentAmount = "${"0x" + requestObject.responseObject.paymentAmount.substr(2).padStart(64, '0')}",
+            paymentChain = "${requestObject.data.chains[indexOfMinRatio]}",
             gas0 = "${"0x" + gases[0].substr(2).padStart(64, '0')}",
+            gasPrice0 = "${"0x" + gasPrices[0].substr(2).padStart(64, '0')}",
             gas1 = "${"0x" + gases[1].substr(2).padStart(64, '0')}",
-            chain0 = "${"0x" + requestObject.data.chains[0].substr(2).padStart(64, '0')}",
-            chain1 = "${"0x" + requestObject.data.chains[1].substr(2).padStart(64, '0')}",
-            token0 = "${"0x" + requestObject.data.tokens[0].substr(2).padStart(40, '0')}",
-            token1 = "${"0x" + requestObject.data.tokens[1].substr(2).padStart(40, '0')}",
+            gasPrice1 = "${"0x" + gasPrices[1].substr(2).padStart(64, '0')}",
+            chain0 = "${requestObject.data.chains[0]}",
+            chain1 = "${requestObject.data.chains[1]}",
+            token0 = "${requestObject.data.tokens[0]}",
+            token1 = "${requestObject.data.tokens[1]}",
             amount0 = "${"0x" + requestObject.data.amounts[0].substr(2).padStart(64, '0')}",
             amount1 = "${"0x" + requestObject.data.amounts[1].substr(2).padStart(64, '0')}",
-            timestamp = ${Date.now()}`,
+            timestamp = ${Date.now()}
+            where id = ${requestObject.id}`,
         (err, res) => {
             if (err) throw err;
             if (!err) resolve(null);
@@ -311,6 +306,113 @@ processes.init( // getLiquidityAddRequestId
         console.log(`Creating addLiquidityRequest with id ${requestObject.id}`);
         handleAddLiquidityRequest(connection, requestObject);
         next();
+    }
+);
+processes.init( // processLog
+    "processLog",
+    async function (queueObject) {
+        let next = () => {
+            if (this.queue.length) this.process(this.queue[0]);
+            if (!this.queue.length) this.running = false;
+        };
+        let { log, network, chainData, connection } = queueObject;
+        this.queue.shift();
+        let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
+        if (parseInt(method) == 0) {
+            connection.query(
+                `select
+                paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1
+                from addLiquidityRequests
+                where id = ${parseInt(id)} and paymentChain = "${network.chainId}" and status0 = 0 and status1 = 0`,
+            (err, res, fields) => {
+                if (err) {
+                    next();
+                    throw err;
+                } else {
+                    if (res.length) {
+                        let { paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1 } = res[0];
+                        if (BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)) {
+                            connection.query(
+                                `update addLiquidityRequests set
+                                paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `",
+                                status0 = 254,
+                                status1 = 254
+                                where id = ` + parseInt(id),
+                            async (err, res, fields) => {
+                                if (err) {
+                                    next();
+                                    throw err;
+                                } else {
+                                    console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, >= paymentAmount`);
+                                    let chainData0 = getChainData(chain0);
+                                    let xdexTransferFromTx0 = {
+                                        from: chainData0.TangleRelayer,
+                                        to: chainData0.TangleRelayerContract,
+                                        gasLimit: gas0,
+                                        gasPrice: gasPrice0,
+                                        data:
+                                            sig("transferFrom(address,address,address,uint256,uint256,uint256") +
+                                            token0.substr(2) +
+                                            msgSender.substr(2) +
+                                            amount0.substr(2) +
+                                            '0'.padStart(64, '0') +
+                                            parseInt(id).toString().padStart(64, '0'),
+                                        nonce: 0,
+                                        chainId: parseInt(chain0.replace(/0+(?!x|$)/, ""))
+                                    };
+                                    let chainData1 = getChainData(chain1);
+                                    let xdexTransferFromTx1 = {
+                                        from: chainData1.TangleRelayer,
+                                        to: chainData1.TangleRelayerContract,
+                                        gasLimit: gas1,
+                                        gasPrice: gasPrice1,
+                                        data:
+                                            sig("transferFrom(address,address,address,uint256,uint256,uint256") +
+                                            token1.substr(2) +
+                                            msgSender.substr(2) +
+                                            amount1.substr(2) +
+                                            '0'.padStart(64, '0') +
+                                            parseInt(id).toString().padStart(64, '0'),
+                                        nonce: 0,
+                                        chainId: parseInt(chain1.replace(/0+(?!x|$)/, ""))
+                                    };
+                                    let signedTx0 = await xdexWallet.signTransaction(xdexTransferFromTx0);
+                                    let signedTx1 = await xdexWallet.signTransaction(xdexTransferFromTx1);
+                                    chainData0.method = "eth_sendRawTransaction";
+                                    chainData0.params = [signedTx0];
+                                    chainData1.method = "eth_sendRawTransaction";
+                                    chainData1.params = [signedTx1];
+                                    let rawTxResponse0 = await evmJsonRpcRequest(chainData0);
+                                    let rawTxResponse1 = await evmJsonRpcRequest(chainData1);
+                                    console.log([rawTxResponse0, rawTxResponse1]);
+                                    next();
+                                }
+                            });
+                        } else {
+                            connection.query(
+                                `update addLiquidityRequests set
+                                paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
+                                where id = ` + parseInt(id),
+                            (err, res, fields) => {
+                                if (err) {
+                                    next();
+                                    throw err;
+                                } else {
+                                    console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, but < paymentAmount`);
+                                    next();
+                                }
+                            });
+                        }
+                    }
+                    if (!res.length) {
+                        console.log(`\x1b[33m${"WARNING: addLiquidityRequest payment log found with no matching id AND chain AND zero-statuses, ignoring log"}\x1b[0m`);
+                        next();
+                    }
+                }
+            });
+        } else {
+            next();
+        }
     }
 );
 
@@ -337,102 +439,90 @@ processes.init( // getLiquidityAddRequestId
     );
     console.log("Added post handler /xdexAddLiquidity to server");
 
-    let paymentLogsFilters = {
-        P15: {
+
+
+    let networks = [
+        {
+            name: "P14",
             id: null,
-            fromBlock: null
+            chainId: "0x000000000000000000000000000000000000000000000000000000000000000e"
+        },
+        {
+            name: "P15",
+            id: null,
+            chainId: "0x000000000000000000000000000000000000000000000000000000000000000f"
         }
-    };
-    paymentLogsFilters.P15.fromBlock = await new Promise((resolve, reject) => {
-        connection.query(
-            `select
-            syncedPaymentsBlock
-            from syncedBlockNumbers
-            where chain = "0x000000000000000000000000000000000000000000000000000000000000000f"`,
-        (err, res, field) => {
-            if (err) {
-                throw err;
-            } else {
-                resolve(res[0].syncedPaymentsBlock);
+    ];
+    let totalPollingPeriod = 2 * 1000;
+    networks.forEach(async (network, i) => {
+        let chainData = await getChainData(network.chainId);
+        chainData.method = "eth_newFilter";
+        chainData.params = [{
+            fromBlock: "0x0",
+            toBlock: "latest",
+            address: chainData.TangleRelayerContract,
+            topics: [sigLong("PaymentReceived(uint256,uint256,uint256)")]
+        }]
+        network.id = (await evmJsonRpcRequest(chainData)).result;
+        chainData.method = "eth_getFilterLogs";
+        chainData.params = [network.id];
+        let processLog = async log => {
+            let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
+            if (parseInt(method) == 0) {
+                connection.query(
+                    `select
+                    paidAmount, paymentAmount
+                    from addLiquidityRequests
+                    where id = ${parseInt(id)} and paymentChain = "${network.chainId}" and status0 = 0 and status1 = 0`,
+                (err, res, fields) => {
+                    if (err) {
+                        throw err;
+                    } else {
+                        if (res.length) {
+                            let { paidAmount, paymentAmount } = res[0];
+                            connection.query(
+                                `update addLiquidityRequests set
+                                paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
+                                where id = ` + parseInt(id),
+                            (err, res, fields) => {
+                                if (err) {
+                                    throw err;
+                                } else {
+                                    console.log(
+                                        `id: ${parseInt(id)}:
+                                        Value ${BigInt(value)} found,
+                                        paidAmount now ${BigInt(paidAmount) + BigInt(value)},
+                                        >= paymentAmount ${BigInt(paymentAmount)}? ${BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)}`.replace(/^\s+/gm, "")
+                                    );
+                                    if (BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)) {
+                                        console.log(parseInt(id), processingTransactions.addLiquidity.indexOf(parseInt(id)));
+                                    }
+                                }
+                            });
+                        }
+                        if (!res.length) {
+                            console.log(`\x1b[33m${"WARNING: addLiquidityRequest payment log found with no matching id AND chain AND zero-statuses, ignoring log"}\x1b[0m`);
+                        }
+                    }
+                });
             }
-        });
+        };
+        setTimeout(() => {
+            setInterval(async () => {
+                console.log(`Checking logs of network ${network.name}...`);
+                let logs = (await evmJsonRpcRequest(chainData)).result;
+                if (logs && logs.forEach) logs.forEach(log => {
+                    processes["processLog"].queue.push({
+                        log: log,
+                        network: network,
+                        chainData: chainData,
+                        connection: connection
+                    });
+                });
+                if (chainData.method != "eth_getFilterChanges") chainData.method = "eth_getFilterChanges";
+            }, totalPollingPeriod);
+        }, parseInt(i * totalPollingPeriod / networks.length));
     });
-    let chainData = await getChainData("0x000000000000000000000000000000000000000000000000000000000000000f");
-    chainData.method = "eth_newFilter";
-    chainData.params = [{
-        fromBlock: "0x" + (BigInt(paymentLogsFilters.P15.fromBlock) + BigInt(1)).toString(16),
-        toBlock: "latest",
-        address: chainData.TangleRelayerContract,
-        topics: ["0x243f8b521882d823492f47c974aec93c6b1f81e3f30a1eb6a6d18bd2fecf975b"]
-    }]
-    paymentLogsFilters.P15.id = (await evmJsonRpcRequest(chainData)).result;
-    chainData.method = "eth_getFilterLogs";
-    chainData.params = [paymentLogsFilters.P15.id];
-    let processLog = async log => {
-        let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
-        if (parseInt(method) == 0) {
-            connection.query(
-                `select
-                paidAmount, paymentAmount
-                from addLiquidityRequests
-                where id = ${parseInt(id)}`,
-            (err, res, fields) => {
-                if (err) {
-                    throw err;
-                } else {
-                    if (res.length) {
-                        let { paidAmount, paymentAmount } = res[0];
-                        connection.query(
-                            `update addLiquidityRequests set
-                            paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
-                            where id = ` + parseInt(id),
-                        (err, res, fields) => {
-                            if (err) {
-                                throw err;
-                            } else {
-                                console.log(
-                                    `id: ${parseInt(id)}:
-                                    Value ${BigInt(value)} found,
-                                    paidAmount now ${BigInt(paidAmount) + BigInt(value)},
-                                    >= paymentAmount ${BigInt(paymentAmount)}? ${BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)}`
-                                );
-                            }
-                        });
-                    }
-                    if (!res.length) {
-                        console.log(`\x1b[33m${"WARNING: Log found with no matching addLiquidityRequest id, ignoring log"}\x1b[0m`);
-                    }
-                }
-            });
-        }
-    };
-    let updateBlockNumber = blockNumber => {
-        return new Promise((resolve, reject) => {
-            connection.query(
-                `update syncedBlockNumbers set
-                syncedPaymentsBlock = "` + blockNumber + `"
-                where chain = "` + "0x000000000000000000000000000000000000000000000000000000000000000f" + `";`,
-            (err, res, fields) => {
-                if (err) throw err;
-                if (!err) {
-                    chainData.method = "eth_getFilterChanges";
-                    console.log(`Updated chain 0xf syncedPaymentsBlock to ${blockNumber.replace(/0+(?!x|$)/, "")}`);
-                }
-            });
-        });
-    };
-    let checkLogs = setInterval(async () => {
-        console.log("Checking logs...");
-        let logs = (await evmJsonRpcRequest(chainData)).result;
-        let blockNumber = BigInt(0);
-        logs.forEach(log => {
-            if (BigInt(log.blockNumber) > BigInt(blockNumber))
-                blockNumber = "0x" + log.blockNumber.substr(2).padStart(64, '0');
-            processLog(log);
-        });
-        if (blockNumber) await updateBlockNumber(blockNumber);
-        if (!blockNumber) console.log("No logs found");
-    }, 10000);
 
 
 
