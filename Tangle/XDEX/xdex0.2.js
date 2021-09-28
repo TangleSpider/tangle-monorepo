@@ -53,6 +53,21 @@ let tables = [
             amount1 char(66) default "${hexZeroes(32)}",
             timestamp bigint default 0`,
         reset: true
+    },
+    {
+        name: "nonces",
+        createDefinition:
+            `chainId char(66),
+            nonce char(66) default "${hexZeroes(32)}"`,
+        reset: false
+    },
+    {
+        name: "blockNumbers",
+        createDefinition:
+            `chainId char(66),
+            blockNumber char(66) default "${hexZeroes(32)}",
+            logType tinyint unsigned`,
+        reset: false
     }
 ];
 let initializeAllTables = connection => {
@@ -170,15 +185,17 @@ let getChainData = chain => {
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8000";
-            chainData.TangleRelayerContract = "0x3453912A250d7dC346784dAA335915A33C1af6CB";
+            chainData.TangleRelayerContract = "0xf79B38913638B83B5566333994E87dbd6F6c4527";
             chainData.TangleRelayer = "0xB6c861d9A22b5DB61B485167685324fD2E6dfBE5";
+            chainData.chainId = "0x000000000000000000000000000000000000000000000000000000000000000e";
             break;
         case "0x000000000000000000000000000000000000000000000000000000000000000f":
             chainData.whichProtocol = 0;
             chainData.rpcUrl = "localhost/";
             chainData.port = "8001";
-            chainData.TangleRelayerContract = "0x0271908aF8dB4339b5a8343Ef20fae50F8B74Ccf";
+            chainData.TangleRelayerContract = "0xd858C504Cf2c996fbd840ac6c2e4345ed92393F1";
             chainData.TangleRelayer = "0xB6c861d9A22b5DB61B485167685324fD2E6dfBE5";
+            chainData.chainId = "0x000000000000000000000000000000000000000000000000000000000000000f";
             break;
     }
     return chainData;
@@ -315,103 +332,218 @@ processes.init( // processLog
             if (this.queue.length) this.process(this.queue[0]);
             if (!this.queue.length) this.running = false;
         };
-        let { log, network, chainData, connection } = queueObject;
+        let { log, network, chainData, connection, blockNumberPaymentLog, blockNumberTransferFromLog } = queueObject;
         this.queue.shift();
-        let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
-        if (parseInt(method) == 0) {
-            connection.query(
-                `select
-                paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1
-                from addLiquidityRequests
-                where id = ${parseInt(id)} and paymentChain = "${network.chainId}" and status0 = 0 and status1 = 0`,
-            (err, res, fields) => {
-                if (err) {
-                    next();
-                    throw err;
-                } else {
-                    if (res.length) {
-                        let { paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1 } = res[0];
-                        if (BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)) {
-                            connection.query(
-                                `update addLiquidityRequests set
-                                paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `",
-                                status0 = 254,
-                                status1 = 254
-                                where id = ` + parseInt(id),
-                            async (err, res, fields) => {
-                                if (err) {
-                                    next();
-                                    throw err;
-                                } else {
-                                    console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, >= paymentAmount`);
-                                    let chainData0 = getChainData(chain0);
-                                    let xdexTransferFromTx0 = {
-                                        from: chainData0.TangleRelayer,
-                                        to: chainData0.TangleRelayerContract,
-                                        gasLimit: gas0,
-                                        gasPrice: gasPrice0,
-                                        data:
-                                            sig("transferFrom(address,address,address,uint256,uint256,uint256") +
-                                            token0.substr(2) +
-                                            msgSender.substr(2) +
-                                            amount0.substr(2) +
-                                            '0'.padStart(64, '0') +
-                                            parseInt(id).toString().padStart(64, '0'),
-                                        nonce: 0,
-                                        chainId: parseInt(chain0.replace(/0+(?!x|$)/, ""))
-                                    };
-                                    let chainData1 = getChainData(chain1);
-                                    let xdexTransferFromTx1 = {
-                                        from: chainData1.TangleRelayer,
-                                        to: chainData1.TangleRelayerContract,
-                                        gasLimit: gas1,
-                                        gasPrice: gasPrice1,
-                                        data:
-                                            sig("transferFrom(address,address,address,uint256,uint256,uint256") +
-                                            token1.substr(2) +
-                                            msgSender.substr(2) +
-                                            amount1.substr(2) +
-                                            '0'.padStart(64, '0') +
-                                            parseInt(id).toString().padStart(64, '0'),
-                                        nonce: 0,
-                                        chainId: parseInt(chain1.replace(/0+(?!x|$)/, ""))
-                                    };
-                                    let signedTx0 = await xdexWallet.signTransaction(xdexTransferFromTx0);
-                                    let signedTx1 = await xdexWallet.signTransaction(xdexTransferFromTx1);
-                                    chainData0.method = "eth_sendRawTransaction";
-                                    chainData0.params = [signedTx0];
-                                    chainData1.method = "eth_sendRawTransaction";
-                                    chainData1.params = [signedTx1];
-                                    let rawTxResponse0 = await evmJsonRpcRequest(chainData0);
-                                    let rawTxResponse1 = await evmJsonRpcRequest(chainData1);
-                                    console.log([rawTxResponse0, rawTxResponse1]);
-                                    next();
-                                }
-                            });
-                        } else {
-                            connection.query(
-                                `update addLiquidityRequests set
-                                paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
-                                where id = ` + parseInt(id),
-                            (err, res, fields) => {
-                                if (err) {
-                                    next();
-                                    throw err;
-                                } else {
-                                    console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, but < paymentAmount`);
-                                    next();
-                                }
-                            });
+        console.log(log);
+        if (log.topics[0] == sigLong("PaymentReceived(uint256,uint256,uint256)")) {
+            if (parseInt(log.blockNumber) > parseInt(blockNumberPaymentLog)) {
+                await new Promise((resolve, reject) => {
+                    connection.query(
+                        `update blockNumbers set
+                        blockNumber = "${"0x" + log.blockNumber.substr(2).padStart(64, '0')}"
+                        where chainId = "${network.chainId}" and logType = 0`,
+                    (err, res) => {
+                        if (err) throw err;
+                        if (!err) resolve(null);
+                    });
+                });
+            }
+            let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
+            if (parseInt(method) == 0) {
+                connection.query(
+                    `select
+                    paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1
+                    from addLiquidityRequests
+                    where id = ${parseInt(id)} and paymentChain = "${network.chainId}" and status0 = 0 and status1 = 0`,
+                (err, res, fields) => {
+                    if (err) {
+                        next();
+                        throw err;
+                    } else {
+                        if (res.length) {
+                            let { paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1 } = res[0];
+                            if (BigInt(paidAmount) + BigInt(value) >= BigInt(paymentAmount)) {
+                                connection.query(
+                                    `update addLiquidityRequests set
+                                    paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `",
+                                    status0 = 254,
+                                    status1 = 254
+                                    where id = ` + parseInt(id),
+                                async (err, res, fields) => {
+                                    if (err) {
+                                        next();
+                                        throw err;
+                                    } else {
+                                        console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, >= paymentAmount`);
+                                        let nonce0 = parseInt(await new Promise((resolve, reject) => {
+                                            connection.query(
+                                                `select
+                                                nonce
+                                                from nonces
+                                                where chainId = "${chain0}"`,
+                                            (err, res) => {
+                                                if (err) throw err;
+                                                if (!err && res.length) resolve(res[0].nonce);
+                                                if (!err && !res.length) {
+                                                    connection.query(
+                                                        `insert
+                                                        nonces
+                                                        (nonce, chainId)
+                                                        values (default, "${chain0}")`,
+                                                    (err, res) => {
+                                                        if (err) throw err;
+                                                        if (res) resolve(0);
+                                                    });
+                                                }
+                                            });
+                                        }));
+                                        let nonce1 = parseInt(await new Promise((resolve, reject) => {
+                                            connection.query(
+                                                `select
+                                                nonce
+                                                from nonces
+                                                where chainId = "${chain1}"`,
+                                            (err, res) => {
+                                                if (err) throw err;
+                                                if (!err && res.length) resolve(res[0].nonce);
+                                                if (!err && !res.length) {
+                                                    connection.query(
+                                                        `insert
+                                                        nonces
+                                                        (nonce, chainId)
+                                                        values (default, "${chain1}")`,
+                                                    (err, res) => {
+                                                        if (err) throw err;
+                                                        if (res) resolve(0);
+                                                    });
+                                                }
+                                            });
+                                        }));
+                                        let chainData0 = getChainData(chain0);
+                                        let chainData1 = getChainData(chain1);
+                                        let xdexTransferFromTxs = [[{
+                                            from: chainData0.TangleRelayer,
+                                            to: chainData0.TangleRelayerContract,
+                                            gasLimit: gas0,
+                                            gasPrice: gasPrice0,
+                                            data:
+                                                sig("transferFrom(address,address,address,uint256,uint256,uint256)") +
+                                                token0.substr(2).padStart(64, '0') +
+                                                msgSender.substr(2).padStart(64, '0') +
+                                                chainData0.TangleRelayerContract.substr(2).padStart(64, '0') +
+                                                amount0.substr(2).padStart(64, '0') +
+                                                '0'.padStart(64, '0') +
+                                                parseInt(id).toString().padStart(64, '0'),
+                                            nonce: nonce0,
+                                            chainId: parseInt(chain0.replace(/0+(?!x|$)/, ""))
+                                        }, chainData0],
+                                        [{
+                                            from: chainData1.TangleRelayer,
+                                            to: chainData1.TangleRelayerContract,
+                                            gasLimit: gas1,
+                                            gasPrice: gasPrice1,
+                                            data:
+                                                sig("transferFrom(address,address,address,uint256,uint256,uint256)") +
+                                                token1.substr(2).padStart(64, '0') +
+                                                msgSender.substr(2).padStart(64, '0') +
+                                                chainData1.TangleRelayerContract.substr(2).padStart(64, '0') +
+                                                amount1.substr(2).padStart(64, '0') +
+                                                '0'.padStart(64, '0') +
+                                                parseInt(id).toString().padStart(64, '0'),
+                                            nonce: nonce1,
+                                            chainId: parseInt(chain1.replace(/0+(?!x|$)/, ""))
+                                        }, chainData1]];
+                                        console.log(xdexTransferFromTxs[0], xdexTransferFromTxs[1]);
+                                        let txResponses = await Promise.all(xdexTransferFromTxs.map(xdexTransferFromTx => {
+                                            return new Promise(async (resolve, reject) => {
+                                                let signedTx = await xdexWallet.signTransaction(xdexTransferFromTx[0]);
+                                                xdexTransferFromTx[1].method = "eth_sendRawTransaction";
+                                                xdexTransferFromTx[1].params = [signedTx];
+                                                let rawTxResponse = await evmJsonRpcRequest(xdexTransferFromTx[1]);
+                                                while (rawTxResponse.error && rawTxResponse.error.message == "nonce too low") {
+                                                    xdexTransferFromTx[0].nonce++;
+                                                    signedTx = await xdexWallet.signTransaction(xdexTransferFromTx[0]);
+                                                    xdexTransferFromTx[1].params = [signedTx];
+                                                    rawTxResponse = await evmJsonRpcRequest(xdexTransferFromTx[1]);
+                                                }
+                                                xdexTransferFromTx[0].nonce++;
+                                                connection.query(
+                                                    `update nonces set
+                                                    nonce = "${"0x" + xdexTransferFromTx[0].nonce.toString(16).padStart(64, '0')}"
+                                                    where chainId = "${xdexTransferFromTx[1].chainId}"`,
+                                                (err, res) => {
+                                                    if (err) throw err;
+                                                    if (!err) resolve(rawTxResponse)
+                                                });
+                                            });
+                                        }));
+                                        console.log(txResponses);
+                                        next();
+                                    }
+                                });
+                            } else {
+                                connection.query(
+                                    `update addLiquidityRequests set
+                                    paidAmount = "` + "0x" + (BigInt(paidAmount) + BigInt(value)).toString(16).padStart(64, '0') + `"
+                                    where id = ` + parseInt(id),
+                                (err, res, fields) => {
+                                    if (err) {
+                                        next();
+                                        throw err;
+                                    } else {
+                                        console.log(`updated paidAmount for addLiquidityRequest with id ${parseInt(id)}, but < paymentAmount`);
+                                        next();
+                                    }
+                                });
+                            }
+                        }
+                        if (!res.length) {
+                            console.log(`\x1b[33m${"WARNING: addLiquidityRequest payment log found with no matching id AND chain AND zero-statuses, ignoring log"}\x1b[0m`);
+                            next();
                         }
                     }
-                    if (!res.length) {
-                        console.log(`\x1b[33m${"WARNING: addLiquidityRequest payment log found with no matching id AND chain AND zero-statuses, ignoring log"}\x1b[0m`);
-                        next();
-                    }
-                }
-            });
+                });
+            } else {
+                next();
+            }
         } else {
-            next();
+            if (parseInt(log.blockNumber) > parseInt(blockNumberTransferFromLog)) {
+                await new Promise((resolve, reject) => {
+                    connection.query(
+                        `update blockNumbers set
+                        blockNumber = "${"0x" + log.blockNumber.substr(2).padStart(64, '0')}"
+                        where chainId = "${network.chainId}" and logType = 0`,
+                    (err, res) => {
+                        if (err) throw err;
+                        if (!err) resolve(null);
+                    });
+                });
+            }
+            let [id, method] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
+            if (parseInt(method) == 0) {
+                connection.query(
+                    `select
+                    paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1
+                    from addLiquidityRequests
+                    where id = ${parseInt(id)} and paymentChain = "${network.chainId}" and status0 = 254 and status1 = 254`,
+                (err, res, fields) => {
+                    if (err) {
+                        next();
+                        throw err;
+                    } else {
+                        if (res.length) {
+                            let { paidAmount, paymentAmount, gas0, gasPrice0, gas1, gasPrice1, chain0, chain1, token0, token1, msgSender, amount0, amount1 } = res[0];
+                            //console.log(res);
+                        }
+                        if (!res.length) {
+                            console.log(`\x1b[33m${"WARNING: transferFrom log found with no matching id AND chain AND 254-statuses, ignoring log"}\x1b[0m`);
+                            next();
+                        }
+                    }
+                });
+            } else {
+                next();
+            }
         }
     }
 );
@@ -439,8 +571,6 @@ processes.init( // processLog
     );
     console.log("Added post handler /xdexAddLiquidity to server");
 
-
-
     let networks = [
         {
             name: "P14",
@@ -456,17 +586,61 @@ processes.init( // processLog
     let totalPollingPeriod = 2 * 1000;
     networks.forEach(async (network, i) => {
         let chainData = await getChainData(network.chainId);
+        let blockNumberPaymentLog = await new Promise((resolve, reject) => {
+            connection.query(
+                `select
+                blockNumber
+                from blockNumbers
+                where chainId = "${network.chainId}" and logType = 0`,
+            (err, res) => {
+                if (err) throw err;
+                if (!err && res.length) resolve(res[0].blockNumber);
+                if (!err && !res.length) {
+                    connection.query(
+                        `insert
+                        blockNumbers
+                        (blockNumber, chainId, logType)
+                        values (default, "${network.chainId}", 0)`,
+                    (err, res) => {
+                        if (err) throw err;
+                        if (res) resolve(hexZeroes(32));
+                    });
+                }
+            });
+        });
+        let blockNumberTransferFromLog = await new Promise((resolve, reject) => {
+            connection.query(
+                `select
+                blockNumber
+                from blockNumbers
+                where chainId = "${network.chainId}" and logType = 1`,
+            (err, res) => {
+                if (err) throw err;
+                if (!err && res.length) resolve(res[0].blockNumber);
+                if (!err && !res.length) {
+                    connection.query(
+                        `insert
+                        blockNumbers
+                        (blockNumber, chainId, logType)
+                        values (default, "${network.chainId}", 1)`,
+                    (err, res) => {
+                        if (err) throw err;
+                        if (res) resolve(hexZeroes(32));
+                    });
+                }
+            });
+        });
         chainData.method = "eth_newFilter";
         chainData.params = [{
-            fromBlock: "0x0",
+            fromBlock: blockNumberPaymentLog.replace(/0+(?!x|$)/, ""),
             toBlock: "latest",
             address: chainData.TangleRelayerContract,
-            topics: [sigLong("PaymentReceived(uint256,uint256,uint256)")]
+            topics: [[sigLong("PaymentReceived(uint256,uint256,uint256)"), sigLong("TokensTransferred(uint256,uint256)")]]
         }]
         network.id = (await evmJsonRpcRequest(chainData)).result;
         chainData.method = "eth_getFilterLogs";
         chainData.params = [network.id];
-        let processLog = async log => {
+        /*let processLog = async log => {
             let [id, method, value] = log.data.substr(2).match(/.{64}/g).map(a => "0x" + a);
             if (parseInt(method) == 0) {
                 connection.query(
@@ -506,7 +680,7 @@ processes.init( // processLog
                     }
                 });
             }
-        };
+        };*/
         setTimeout(() => {
             setInterval(async () => {
                 console.log(`Checking logs of network ${network.name}...`);
@@ -516,7 +690,9 @@ processes.init( // processLog
                         log: log,
                         network: network,
                         chainData: chainData,
-                        connection: connection
+                        connection: connection,
+                        blockNumberPaymentLog: blockNumberPaymentLog,
+                        blockNumberTransferFromLog: blockNumberTransferFromLog
                     });
                 });
                 if (chainData.method != "eth_getFilterChanges") chainData.method = "eth_getFilterChanges";

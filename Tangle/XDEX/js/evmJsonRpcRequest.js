@@ -7,7 +7,6 @@ let evmJsonRpcRequest = async requestObject => {
     if (
         method == "eth_getBalance" ||
         method == "eth_getCode" ||
-        method == "eth_getTransactionCount" ||
         method == "eth_getStorageAt" ||
         method == "eth_call"
     ) params.push(blockNumber);
