@@ -7,12 +7,12 @@ let sig = selector => {
 let chains = {
     P14: {
         rpcUrl: "http://127.0.0.1:8000",
-        TangleRelayerContract: "0xf79B38913638B83B5566333994E87dbd6F6c4527",
+        TangleRelayerContract: "0xA509CA4CF5E05B1e2178B1a9Ade08e05374C64af",
         chainId: "0xe"
     },
     P15: {
         rpcUrl: "http://127.0.0.1:8001",
-        TangleRelayerContract: "0xd858C504Cf2c996fbd840ac6c2e4345ed92393F1",
+        TangleRelayerContract: "0x3835Eb64fe65B7a3d85d110152ecaF547A919ca3",
         chainId: "0xf"
     }
 };
