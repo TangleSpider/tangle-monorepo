@@ -25,7 +25,7 @@ library SLib {
     }
 
     function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Brain.Tangle_0.1");
+        bytes32 storagePosition = keccak256("Brain.Tangle0");
         assembly {s.slot := storagePosition}
     }
 
