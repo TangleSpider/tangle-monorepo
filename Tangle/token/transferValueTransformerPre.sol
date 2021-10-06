@@ -12,23 +12,23 @@ library SLib {
     }
 
     function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Brain.Tangle.ValueTransformer");
+        bytes32 storagePosition = keccak256("Brain.Tangle.ValueTransformerPre");
         assembly {s.slot := storagePosition}
     }
 
 }
 
-/// @title ValueTransformer, transforms a Tangle transfer value
+/// @title ValueTransformerPre, transforms a Tangle transfer value
 /// @author Brad Brown
-/// @notice Transforms a Tangle transfer value
-contract ValueTransformer {
+/// @notice Transforms a Tangle transfer value prior to the tax transform
+contract TransferValueTransformerPre {
 
     mapping(bytes4 => address) private selectorToAddress;
 
-    /// @notice Initializes all ValueTransformer variables
+    /// @notice Initializes all ValueTransformerPre variables
     /// @dev Initialization can only run once, when the id is not set to the
-    /// hash of the current ValueTransformer implementation address
-    function initValueTransformer() external {
+    /// hash of the current ValueTransformerPre implementation address
+    function initTransferValueTransformerPre() external {
         SLib.S storage s = SLib.getS();
         bytes32 id = keccak256(abi.encodePacked(selectorToAddress[msg.sig]));
         require(s.initHash != id, "already initialized");
@@ -41,7 +41,7 @@ contract ValueTransformer {
     /// @param owner The address the Tangle is being transferred from
     /// @param value The amount of Tangle being transferred
     /// @return The transformed transfer value
-    function valueTransform(address owner, uint value)
+    function transferValueTransformPre(address owner, uint value)
         external
         view
         returns (uint)

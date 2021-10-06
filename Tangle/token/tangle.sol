@@ -4,7 +4,12 @@ pragma solidity ^0.8.9;
 
 
 /// @notice Storage for the Tangle Contract
-/// @dev This is a Diamond Storage implementation described in EIP-2535
+/// @dev This is a Diamond Storage implementation described in EIP-2535.
+/// IMPORTANT: If a new Tangle contract needs to be implemented, you MUST
+/// change the name in the storagePosition declaration line. This is
+/// because the storage contains a mapping which cannot easily be cleared.
+/// All external implementations using a Tangle mapping must
+/// also be redeployed if Tangle needs to be redeployed (to update storage).
 library SLib {
 
     struct S {
@@ -20,7 +25,7 @@ library SLib {
     }
 
     function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Brain.Tangle");
+        bytes32 storagePosition = keccak256("Brain.Tangle_0.1");
         assembly {s.slot := storagePosition}
     }
 
@@ -110,23 +115,30 @@ contract Tangle {
 
     /// @notice Transfers Tangle from one holder to another, may implement a
     /// variable number of taxes and may modify the amount transferred
-    /// @dev Modifies the value transferred according to the ValueTransformer,
-    /// an external implementation
+    /// @dev Modifies the value transferred according to the pre and tax
+    /// ValueTransformers (external implementations)
     /// @param _to The address Tangle will be sent to
     /// @param value The amount of Tangle sent
     /// @return Whether or not the transfer was successful
     function transfer(address _to, uint value) external returns (bool) {
-        (bool success, bytes memory result) = address(this).staticcall(
+        (bool successPre, bytes memory resultPre) = address(this).staticcall(     // figure out how to compress this pattern after contract is mostly complete
             abi.encodeWithSignature(
-                "valueTransform(bytes)",
+                "transferValueTransformPre(address,uint256)",
                 _to,
                 value
             )
         );
-        require(success, "staticdelegate failed");
-        value = uint(bytes32(result));
+        if (successPre) value = uint(bytes32(resultPre));
         SLib.S storage s = SLib.getS();
         s.balanceOf[msg.sender] -= unitsToPieces(value);
+        (bool successTax, bytes memory resultTax) = address(this).call(
+            abi.encodeWithSignature(
+                "transferValueTransformTax(address,uint256)",
+                msg.sender,
+                value
+            )
+        );
+        if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(msg.sender, _to, value);
         return true;
@@ -145,9 +157,26 @@ contract Tangle {
         external
         returns
     (bool) {
+        (bool success, bytes memory result) = address(this).staticcall(
+            abi.encodeWithSignature(
+                "valueTransform(bytes)",
+                _to,
+                value
+            )
+        );
+        require(success, "staticdelegate failed");
+        value = uint(bytes32(result));
         SLib.S storage s = SLib.getS();
         s.allowance[_from][_to] -= value;
         s.balanceOf[_from] -= unitsToPieces(value);
+        (bool successTax, bytes memory resultTax) = address(this).call(
+            abi.encodeWithSignature(
+                "transferValueTransformTax(address,uint256)",
+                msg.sender,
+                value
+            )
+        );
+        if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(_from, _to, value);
         return true;
