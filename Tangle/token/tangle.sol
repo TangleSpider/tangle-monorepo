@@ -165,7 +165,7 @@ contract Tangle {
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(msg.sender, _to, value);
-        executePostTransferHooks();
+        executePostTransferHooks(msg.sender, _to, value);
         return true;
     }
 
@@ -173,8 +173,7 @@ contract Tangle {
     /// variable number of taxes and may modify the amount transferred. Can be
     /// initiated by an approved 3rd party
     /// @dev Modifies the value transferred according to the ValueTransformer,
-    /// an external implementation. Assembly section sends calls to all current
-    /// Post-Transfer hooks.
+    /// an external implementation.
     /// @param _from The address Tangle will be sent from
     /// @param _to The address Tangle will be sent to
     /// @param value The amount of Tangle sent
@@ -205,7 +204,7 @@ contract Tangle {
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(_from, _to, value);
-        executePostTransferHooks();
+        executePostTransferHooks(_from, _to, value);
         return true;
     }
 
