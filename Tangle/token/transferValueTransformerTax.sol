@@ -59,7 +59,6 @@ library SLib {
 contract TransferValueTransformerTax {
 
     mapping(bytes4 => address) private selectorToAddress;
-    /// @notice The owner of this contract
     address private owner;
 
     /// @notice Records all transfers
@@ -143,7 +142,7 @@ contract TransferValueTransformerTax {
         bool changesMade = false;
         for (uint i = 0; i < splitCuts.length; i++) {
             SLib.SplitCut memory splitCut_ = splitCuts[i];
-            SLib.Split memory split = splitCuts[i].split;
+            SLib.Split memory split = splitCut_.split;
             if (splitCut_.action == SLib.SplitCutAction.Add) {
                 addSplit(split);
                 if (!changesMade) changesMade = true;
@@ -160,6 +159,8 @@ contract TransferValueTransformerTax {
         if (changesMade) emit SplitCut(splitCuts);
     }
 
+    /// @notice Gets all splits and their address, numerator, and denominator
+    /// @return All splits and their address, numerator, and denominator
     function splits() external view returns (SLib.Split[] memory) {
         SLib.S storage s = SLib.getS();
         return s.splits;

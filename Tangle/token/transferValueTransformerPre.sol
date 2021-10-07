@@ -3,7 +3,7 @@
 pragma solidity ^0.8.9;
 
 /// @notice Storage for the Tangle Contract
-/// @dev This is a Diamond Storage implementation described in EIP-2535
+/// @dev This is a Diamond Storage implementation described in EIP-2535.
 library SLib {
 
     struct S {
@@ -12,7 +12,7 @@ library SLib {
     }
 
     function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Brain.Tangle.ValueTransformerPre");
+        bytes32 storagePosition = keccak256("Brain.Tangle0.ValueTransformerPre0");
         assembly {s.slot := storagePosition}
     }
 

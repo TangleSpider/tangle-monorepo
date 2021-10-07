@@ -10,8 +10,10 @@ pragma solidity ^0.8.9;
 /// because the storage contains a mapping which cannot easily be cleared.
 /// All external implementations using a Tangle mapping must
 /// also be redeployed if Tangle needs to be redeployed (to update storage).
+/// PTH stands for Post-Transfer Hook.
 library SLib {
 
+    enum PTHCutAction {Add, Remove}
     struct S {
         string name;
         string symbol;
@@ -21,7 +23,26 @@ library SLib {
         uint piecesPerUnit;
         mapping(address => uint) balanceOf;
         mapping(address => mapping(address => uint)) allowance;
+        PTH[] pths;
+        mapping(string => uint) pthIndex;
+        mapping(string => bool) pthExists;
         bytes32 initHash;
+    }
+    /// @dev Post-Transfer Hook structure. Signature is the signature of the
+    /// function called by the hook. forwardNumber is a number 0-7 that
+    /// indicates which paramters of the transfer are being forwarded in the
+    /// call. Bits to parameters
+    /// (from most to least significant bit, 1-indexed):
+    /// 1-sender, 2-receiver, 3-value. For example, a forwardNumber of 7
+    /// indicates that all parameters are sent (in order). A forwardNumber of
+    /// 6 indicates that the receiver and value parameters are sent.
+    struct PTH {
+        string signature;
+        uint8 forwardNumber;
+    }
+    struct PTHCut {
+        PTHCutAction action;
+        PTH pth;
     }
 
     function getS() internal pure returns (S storage s) {
@@ -38,9 +59,12 @@ library SLib {
 contract Tangle {
 
     mapping(bytes4 => address) private selectorToAddress;
+    address private owner;
 
     /// @notice Records all transfers
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    /// @notice Records all Post-Transfer Hook changes;
+    event PTHCut(SLib.PTHCut[] pthCut);
     /// @notice Records all approvals
     event Approval(
         address indexed _owner,
@@ -121,10 +145,10 @@ contract Tangle {
     /// @param value The amount of Tangle sent
     /// @return Whether or not the transfer was successful
     function transfer(address _to, uint value) external returns (bool) {
-        (bool successPre, bytes memory resultPre) = address(this).staticcall(     // figure out how to compress this pattern after contract is mostly complete
+        (bool successPre, bytes memory resultPre) = address(this).staticcall(
             abi.encodeWithSignature(
                 "transferValueTransformPre(address,uint256)",
-                _to,
+                msg.sender,
                 value
             )
         );
@@ -148,7 +172,8 @@ contract Tangle {
     /// variable number of taxes and may modify the amount transferred. Can be
     /// initiated by an approved 3rd party
     /// @dev Modifies the value transferred according to the ValueTransformer,
-    /// an external implementation
+    /// an external implementation. Assembly section sends calls to all current
+    /// Post-Transfer hooks.
     /// @param _from The address Tangle will be sent from
     /// @param _to The address Tangle will be sent to
     /// @param value The amount of Tangle sent
@@ -159,8 +184,8 @@ contract Tangle {
     (bool) {
         (bool success, bytes memory result) = address(this).staticcall(
             abi.encodeWithSignature(
-                "valueTransform(bytes)",
-                _to,
+                "transferValueTransformPre(address,uint256)",
+                _from,
                 value
             )
         );
@@ -172,13 +197,37 @@ contract Tangle {
         (bool successTax, bytes memory resultTax) = address(this).call(
             abi.encodeWithSignature(
                 "transferValueTransformTax(address,uint256)",
-                msg.sender,
+                _from,
                 value
             )
         );
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(_from, _to, value);
+        for (uint i = 0; i < s.pths.length; i++) {
+            SLib.PTH memory pth = s.pths[i];
+            uint forwardNumber = pth.forwardNumber;
+            string memory sig = pth.signature;
+            assembly {
+                let len := 0x4
+                let ptr := mload(0x40)
+                mstore(ptr, keccak256(add(sig, 0x20), mload(sig)))
+                if and(forwardNumber, 1) {
+                    mstore(add(ptr, len), _from)
+                    len := add(len, 0x20)
+                }
+                if and(forwardNumber, 2) {
+                    mstore(add(ptr, len), _to)
+                    len := add(len, 0x20)
+                }
+                if and(forwardNumber, 4) {
+                    mstore(add(ptr, len), value)
+                    len := add(len, 0x20)
+                }
+                mstore(0x40, add(ptr, len))
+                pop(call(gas(), address(), 0, ptr, len, 0, 0))
+            }
+        }
         return true;
     }
 
@@ -199,6 +248,58 @@ contract Tangle {
 
     function piecesToUnits(uint pieces) internal view returns (uint) {
         return pieces / SLib.getS().piecesPerUnit;
+    }
+
+    function addPTH(SLib.PTH memory pth) internal {
+        SLib.S storage s = SLib.getS();
+        bool pthExists = s.pthExists[pth.signature];
+        require(!pthExists, "pth add");
+        s.pthExists[pth.signature] = true;
+        s.pthIndex[pth.signature] = s.pths.length;
+        s.pths.push(pth);
+    }
+
+    function removePTH(SLib.PTH memory pth) internal {
+        SLib.S storage s = SLib.getS();
+        bool pthExists = s.pthExists[pth.signature];
+        require(pthExists, "pth remove");
+        SLib.PTH memory lastPTH = s.pths[s.pths.length - 1];
+        bytes32 lastPTHSigHash = keccak256(bytes(lastPTH.signature));
+        bytes32 pthSigHash = keccak256(bytes(pth.signature));
+        if (lastPTHSigHash != pthSigHash) {
+            s.pthIndex[lastPTH.signature] = s.pthIndex[pth.signature];
+            s.pths[s.pthIndex[pth.signature]] = lastPTH;
+        }
+        s.pths.pop();
+        s.pthIndex[pth.signature] = 0;
+        s.pthExists[pth.signature] = false;
+    }
+
+    /// @notice Add/replace/remove any number of Post-Transfer Hooks
+    /// @param pthCuts_ Contains an array of Post-Transfer Hook cuts
+    function pthCut(SLib.PTHCut[] calldata pthCuts_) external {
+        require(msg.sender == owner, "not owner");
+        bool changesMade = false;
+        for (uint i = 0; i < pthCuts_.length; i++) {
+            SLib.PTHCut memory pthCut_ = pthCuts_[i];
+            SLib.PTH memory pth = pthCut_.pth;
+            if (pthCut_.action == SLib.PTHCutAction.Add) {
+                addPTH(pth);
+                if (!changesMade) changesMade = true;
+            }
+            if (pthCut_.action == SLib.PTHCutAction.Remove) {
+                removePTH(pth);
+                if (!changesMade) changesMade = true;
+            }
+        }
+        if (changesMade) emit PTHCut(pthCuts_);
+    }
+
+    /// @notice Gets all pths and their address, numerator, and denominator
+    /// @return All pths and their address, numerator, and denominator
+    function pthCuts() external view returns (SLib.PTH[] memory) {
+        SLib.S storage s = SLib.getS();
+        return s.pths;
     }
 
 }
