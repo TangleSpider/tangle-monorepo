@@ -165,6 +165,7 @@ contract Tangle {
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(msg.sender, _to, value);
+        executePostTransferHooks();
         return true;
     }
 
@@ -204,30 +205,7 @@ contract Tangle {
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
         emit Transfer(_from, _to, value);
-        for (uint i = 0; i < s.pths.length; i++) {
-            SLib.PTH memory pth = s.pths[i];
-            uint forwardNumber = pth.forwardNumber;
-            string memory sig = pth.signature;
-            assembly {
-                let len := 0x4
-                let ptr := mload(0x40)
-                mstore(ptr, keccak256(add(sig, 0x20), mload(sig)))
-                if and(forwardNumber, 1) {
-                    mstore(add(ptr, len), _from)
-                    len := add(len, 0x20)
-                }
-                if and(forwardNumber, 2) {
-                    mstore(add(ptr, len), _to)
-                    len := add(len, 0x20)
-                }
-                if and(forwardNumber, 4) {
-                    mstore(add(ptr, len), value)
-                    len := add(len, 0x20)
-                }
-                mstore(0x40, add(ptr, len))
-                pop(call(gas(), address(), 0, ptr, len, 0, 0))
-            }
-        }
+        executePostTransferHooks();
         return true;
     }
 
@@ -300,6 +278,42 @@ contract Tangle {
     function pthCuts() external view returns (SLib.PTH[] memory) {
         SLib.S storage s = SLib.getS();
         return s.pths;
+    }
+
+    /// @notice Executes all Post-Transfer Hooks.
+    /// @param sender The sender of the transfer
+    /// @param receiver The receiver of the transfer
+    /// @param value The value of the transfer
+    function executePostTransferHooks(
+        address sender,
+        address receiver,
+        uint value
+    ) internal {
+        SLib.S storage s = SLib.getS();
+        for (uint i = 0; i < s.pths.length; i++) {
+            SLib.PTH memory pth = s.pths[i];
+            uint forwardNumber = pth.forwardNumber;
+            string memory sig = pth.signature;
+            assembly {
+                let len := 0x4
+                let ptr := mload(0x40)
+                mstore(ptr, keccak256(add(sig, 0x20), mload(sig)))
+                if and(forwardNumber, 1) {
+                    mstore(add(ptr, len), sender)
+                    len := add(len, 0x20)
+                }
+                if and(forwardNumber, 2) {
+                    mstore(add(ptr, len), receiver)
+                    len := add(len, 0x20)
+                }
+                if and(forwardNumber, 4) {
+                    mstore(add(ptr, len), value)
+                    len := add(len, 0x20)
+                }
+                mstore(0x40, add(ptr, len))
+                pop(call(gas(), address(), 0, ptr, len, 0, 0))
+            }
+        }
     }
 
 }
