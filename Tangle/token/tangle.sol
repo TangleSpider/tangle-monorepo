@@ -44,6 +44,16 @@ library SLib {
         PTHCutAction action;
         PTH pth;
     }
+    /// @notice Records all transfers
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    /// @notice Records all Post-Transfer Hook changes;
+    event PTHCut_(PTHCut[] pthCut);
+    /// @notice Records all approvals
+    event Approval(
+        address indexed _owner,
+        address indexed _spender,
+        uint256 _value
+    );
 
     function getS() internal pure returns (S storage s) {
         bytes32 storagePosition = keccak256("Brain.Tangle0");
@@ -61,17 +71,6 @@ contract Tangle {
     mapping(bytes4 => address) private selectorToAddress;
     address private owner;
 
-    /// @notice Records all transfers
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    /// @notice Records all Post-Transfer Hook changes;
-    event PTHCut(SLib.PTHCut[] pthCut);
-    /// @notice Records all approvals
-    event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _value
-    );
-
     /// @notice Initializes all Tangle variables
     /// @dev Initialization can only run once, when the id is not set to the
     /// hash of the current Tangle implementation address
@@ -87,7 +86,7 @@ contract Tangle {
         s.totalPieces = uintMax - (uintMax % s.totalSupply);
         s.piecesPerUnit = s.totalPieces / s.totalSupply;
         s.balanceOf[msg.sender] = unitsToPieces(s.totalSupply);
-        emit Transfer(address(0), msg.sender, s.totalSupply);
+        emit SLib.Transfer(address(0), msg.sender, s.totalSupply);
         s.initHash = id;
     }
 
@@ -164,7 +163,7 @@ contract Tangle {
         );
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
-        emit Transfer(msg.sender, _to, value);
+        emit SLib.Transfer(msg.sender, _to, value);
         executePostTransferHooks(msg.sender, _to, value);
         return true;
     }
@@ -202,7 +201,7 @@ contract Tangle {
         );
         if (successTax) value = uint(bytes32(resultTax));
         s.balanceOf[_to] += unitsToPieces(value);
-        emit Transfer(_from, _to, value);
+        emit SLib.Transfer(_from, _to, value);
         executePostTransferHooks(_from, _to, value);
         return true;
     }
@@ -214,7 +213,7 @@ contract Tangle {
     function approve(address _spender, uint _value) external returns (bool) {
         SLib.S storage s = SLib.getS();
         s.allowance[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
+        emit SLib.Approval(msg.sender, _spender, _value);
         return true;
     }
 
@@ -268,12 +267,12 @@ contract Tangle {
                 if (!changesMade) changesMade = true;
             }
         }
-        if (changesMade) emit PTHCut(pthCuts_);
+        if (changesMade) emit SLib.PTHCut_(pthCuts_);
     }
 
-    /// @notice Gets all pths and their address, numerator, and denominator
-    /// @return All pths and their address, numerator, and denominator
-    function pthCuts() external view returns (SLib.PTH[] memory) {
+    /// @notice Gets all pths and their signature and forwardNumber
+    /// @return All pths and their signature and forwardNumber
+    function pths() external view returns (SLib.PTH[] memory) {
         SLib.S storage s = SLib.getS();
         return s.pths;
     }
@@ -309,7 +308,11 @@ contract Tangle {
                     len := add(len, 0x20)
                 }
                 mstore(0x40, add(ptr, len))
-                pop(call(gas(), address(), 0, ptr, len, 0, 0))
+                let result := call(gas(), address(), 0, ptr, len, 0, 0)
+                returndatacopy(0, 0, returndatasize())
+                switch result
+                    case 0 {}
+                    default {}
             }
         }
     }

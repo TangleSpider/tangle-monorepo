@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.9;
 
-/// @notice Storage for the Tangle Contract
+/// @notice Storage for the TransferValueTransformerTax and Tangle Contract
 /// @dev This is a Diamond Storage implementation described in EIP-2535.
 /// IMPORTANT: If a new Tangle contract needs to be implemented, you MUST
 /// change the name in the storagePosition declaration line. This is
@@ -36,7 +36,14 @@ library SLib {
         uint piecesPerUnit;
         mapping(address => uint) balanceOf;
         mapping(address => mapping(address => uint)) allowance;
+        PTH[] pths;
+        mapping(string => uint) pthIndex;
+        mapping(string => bool) pthExists;
         bytes32 initHash;
+    }
+    struct PTH {
+        string signature;
+        uint8 forwardNumber;
     }
 
     function getS() internal pure returns (S storage s) {
