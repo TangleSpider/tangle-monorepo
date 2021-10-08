@@ -181,14 +181,15 @@ contract Tangle {
         external
         returns
     (bool) {
-        (bool successPre, bytes memory resultPre) = address(this).staticcall(
+        (bool success, bytes memory result) = address(this).staticcall(
             abi.encodeWithSignature(
                 "transferValueTransformPre(address,uint256)",
                 _from,
                 value
             )
         );
-        if (successPre) value = uint(bytes32(resultPre));
+        require(success, "staticdelegate failed");
+        value = uint(bytes32(result));
         SLib.S storage s = SLib.getS();
         s.allowance[_from][_to] -= value;
         s.balanceOf[_from] -= unitsToPieces(value);
