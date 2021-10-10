@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@ethersproject/keccak256": "^5.4.0",
+    "ethereum-private-key-to-public-key": "0.0.5",
+    "ethereumjs-util": "^7.1.2",
     "http": "0.0.1-security",
     "https": "^1.0.0"
   }

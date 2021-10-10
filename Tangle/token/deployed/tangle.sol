@@ -7,7 +7,7 @@ pragma solidity ^0.8.9;
 /// @notice Pieces of this contract can be updated without needing to redeploy
 /// the entire contract
 /// @dev implements IDiamondCut and IDiamondLoupe
-contract Brain {
+contract Tangle {
 
     mapping(bytes4 => address) private selectorToAddress;
     /// @notice The owner of this contract

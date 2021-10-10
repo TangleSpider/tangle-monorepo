@@ -1,0 +1,13 @@
+Tangle
+[["0x52Ad1FcEA75354e71357cc4fA2c2a143755470fe",0,["0xdd62ed3e","0x095ea7b3","0x70a08231","0x313ce567","0x2b3ac0d8","0x06fdde03","0x09c7a809","0x76e7ffe1","0x95d89b41","0x18160ddd","0xa9059cbb","0x23b872dd"]]]
+0x2b3ac0d8
+
+PTHCut
+[[0,["reflect()",0]]]
+
+Reflector
+[["0xb31637D6a2663581Ed970dB2a668A7F49d10C213",0,["0xd01b9fbc","0x527454ab","0x28afa7b3","0x54c5f3c5","0x9bb8711d","0xa1069b65"]]]
+0xd01b9fbc
+
+(NoR|r)eflectorCut
+[[0,"0x0000000000000000000000000000000000000000"]]
