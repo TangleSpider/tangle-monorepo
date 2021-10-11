@@ -13,6 +13,7 @@ library SLib {
         uint totalSupply;
         uint piecesPerUnit;
     }
+    /// Records all info changes
     event InfoChange(S s);
 
     function getS() internal pure returns (S storage s) {

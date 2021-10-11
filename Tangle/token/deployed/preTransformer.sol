@@ -40,19 +40,19 @@ contract PreTransformer {
     {
         uint balance = getBalance(spender);
         require(value <= balance, "transfer value exceeds balance");
-        uint minHoldAmount = SLib.getS().minHoldAmount;
-        if (balance - value < minHoldAmount)
-            value = balance - minHoldAmount;
+        uint minHoldAmount_ = SLib.getS().minHoldAmount;
+        if (balance - value < minHoldAmount_)
+            value = balance - minHoldAmount_;
         return value;
     }
 
     /// @notice Changes the minHoldAmount, emits an event recording the change
-    /// @param minHoldAmount The new minHoldAmount
-    function changeMinHoldAmount(uint minHoldAmount) external {
+    /// @param minHoldAmount_ The new minHoldAmount
+    function changeMinHoldAmount(uint minHoldAmount_) external {
         require(msg.sender == owner, "changeMinHoldAmount");
         SLib.S storage s = SLib.getS();
-        s.minHoldAmount = minHoldAmount;
-        emit SLib.MinHoldAmountChange(minHoldAmount);
+        s.minHoldAmount = minHoldAmount_;
+        emit SLib.MinHoldAmountChange(minHoldAmount_);
     }
 
     function getBalance(address owner_) internal view returns (uint balance) {
@@ -64,6 +64,12 @@ contract PreTransformer {
         );
         require(success, "getBalance staticdelegate");
         balance = uint(bytes32(result));
+    }
+
+    /// @notice Gets the current minHoldAmount
+    /// @return The current minHoldAmount
+    function minHoldAmount() external view returns (uint) {
+        return SLib.getS().minHoldAmount;
     }
 
 }
