@@ -6,10 +6,6 @@ pragma solidity ^0.8.9;
 /// @dev This is a Diamond Storage implementation described in EIP-2535.
 library SLib {
 
-    struct S {
-        string balancesId;
-        string allowancesId;
-    }
     struct SInfo {
         string _0;
         string _1;
@@ -26,15 +22,6 @@ library SLib {
     }
     /// @notice Records all transfers
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    /// @notice Records all balancesId changes
-    event BalancesIdChange(string balancesId);
-    /// @notice Records all allowancesId changes
-    event AllowancesIdChange(string allowancesId);
-
-    function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Tangle.Transferrer");
-        assembly { s.slot := storagePosition }
-    }
 
     function getSInfo() internal pure returns (SInfo storage s) {
         bytes32 storagePosition = keccak256("Tangle.Info");
@@ -92,8 +79,8 @@ contract Transferrer {
         returns
     (bool) {
         value = preTransform(_from, value);
-        SLib.SAllowances storage s = SLib.getSAllowances(SLib.getS().allowancesId);
-        s.allowances[_from][_to] -= value;
+        SLib.SAllowances storage s = SLib.getSAllowances(getMappingId("allowances"));
+        s.allowances[_from][msg.sender] -= value;
         _transfer(_from, _to, value);
         return true;
     }
@@ -101,40 +88,12 @@ contract Transferrer {
     function _transfer(address spender, address receiver, uint value)
         internal
     {
-        SLib.SBalances storage s = SLib.getSBalances(SLib.getS().balancesId);
+        SLib.SBalances storage s = SLib.getSBalances(getMappingId("balances"));
         s.balances[spender] -= unitsToPieces(value);
-        value = taxTransform(spender, value);
+        value = tax(spender, value);
         s.balances[receiver] += unitsToPieces(value);
         emit SLib.Transfer(spender, receiver, value);
         executePostTransferHooks(spender, receiver, value);
-    }
-
-    /// @notice Changes the ID of the balances storage used by the Transferrer
-    /// @param balancesId_ The new balances storage ID
-    function changeBalancesId(string memory balancesId_) internal {
-        SLib.S storage s = SLib.getS();
-        s.balancesId = balancesId_;
-        emit SLib.BalancesIdChange(balancesId_);
-    }
-
-    /// @notice Changes the ID of the allowances storage used by the
-    /// Transferrer
-    /// @param allowancesId_ The new balances storage ID
-    function changeAllowancesId(string memory allowancesId_) internal {
-        SLib.S storage s = SLib.getS();
-        s.allowancesId = allowancesId_;
-        emit SLib.AllowancesIdChange(allowancesId_);
-    }
-
-    function changeStorageIds(
-        bool changeBalancesId_,
-        string memory balancesId_,
-        bool changeAllowancesId_,
-        string memory allowancesId_
-    ) external {
-        require(msg.sender == owner, "changeStorageIds");
-        if (changeBalancesId_) changeBalancesId(balancesId_);
-        if (changeAllowancesId_) changeAllowancesId(allowancesId_);
     }
 
     function unitsToPieces(uint units) internal view returns (uint) {
@@ -157,13 +116,13 @@ contract Transferrer {
         return value;
     }
 
-    function taxTransform(address sender, uint value)
+    function tax(address sender, uint value)
         internal
         returns (uint)
     {
         (bool success, bytes memory result) = address(this).call(
             abi.encodeWithSignature(
-                "taxTransform(address,uint256)",
+                "tax(address,uint256)",
                 sender,
                 value
             )
@@ -188,16 +147,19 @@ contract Transferrer {
         if (success) {}
     }
 
-    /// @notice Gets the ID of the balances storage used by the
-    /// Transferrer
-    function balancesId() external view returns (string memory) {
-        return SLib.getS().balancesId;
-    }
-
-    /// @notice Gets the ID of the allowances storage used by the
-    /// Transferrer
-    function allowancesId() external view returns (string memory) {
-        return SLib.getS().allowancesId;
+    function getMappingId(string memory name)
+        internal
+        view
+        returns (string memory id)
+    {
+        (bool success, bytes memory result) = address(this).staticcall(
+            abi.encodeWithSignature(
+                "getId(string)",
+                name
+            )
+        );
+        require(success, "getMappingId staticdelegate");
+        assembly { id := add(result, 0x40) }
     }
 
 }

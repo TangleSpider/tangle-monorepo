@@ -24,7 +24,7 @@ library SLib {
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
     function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Tangle.Balances0");
+        bytes32 storagePosition = keccak256("Tangle.Balances1");
         assembly { s.slot := storagePosition }
     }
 

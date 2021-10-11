@@ -6,9 +6,6 @@ pragma solidity ^0.8.9;
 /// @dev This is a Diamond Storage implementation described in EIP-2535.
 library SLib {
 
-    struct S {
-        string allowancesId;
-    }
     struct SAllowances {
         mapping(address => mapping(address => uint)) allowances;
     }
@@ -20,11 +17,6 @@ library SLib {
         address indexed _spender,
         uint256 _value
     );
-
-    function getS() internal pure returns (S storage s) {
-        bytes32 storagePosition = keccak256("Tangle.Approver");
-        assembly {s.slot := storagePosition}
-    }
 
     function getSAllowances(
         string memory id
@@ -48,26 +40,26 @@ contract Approver {
     /// @param _value The amount that the spender can spend
     /// @return Whether or not the approval was successful
     function approve(address _spender, uint _value) external returns (bool) {
-        SLib.SAllowances storage s = SLib.getSAllowances(SLib.getS().allowancesId);
+        string memory allowancesId = getMappingId("allowances");
+        SLib.SAllowances storage s = SLib.getSAllowances(allowancesId);
         s.allowances[msg.sender][_spender] = _value;
         emit SLib.Approval(msg.sender, _spender, _value);
         return true;
     }
 
-    /// @notice Changes the ID of the allowances storage used by the
-    /// Approver
-    /// @param allowancesId_ The new balances storage ID
-    function changeAllowancesId(string memory allowancesId_) external {
-        require(msg.sender == owner, "owner");
-        SLib.S storage s = SLib.getS();
-        s.allowancesId = allowancesId_;
-        emit SLib.AllowancesIdChange(allowancesId_);
-    }
-
-    /// @notice Gets the ID of the allowances storage used by the
-    /// Approver
-    function allowancesId() external view returns (string memory) {
-        return SLib.getS().allowancesId;
+    function getMappingId(string memory name)
+        internal
+        view
+        returns (string memory id)
+    {
+        (bool success, bytes memory result) = address(this).staticcall(
+            abi.encodeWithSignature(
+                "getId(string)",
+                name
+            )
+        );
+        require(success, "getMappingId staticdelegate");
+        assembly { id := add(result, 0x40) }
     }
 
 }
