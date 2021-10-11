@@ -15,11 +15,10 @@ let rebase = sig("RebaseEvent(int256)");
 let sync = sig("Sync(uint112,uint112)");
 let reflect = sig("ReflectEvent(address,uint256)");
 
-let rpcUrl = "api.avax.network/ext/bc/C/rpc";
-let address = "0xAf1843657F00F8C048139B7103784fdeFC403702";
+let rpcUrl = "rpc.ftm.tools/";
+let address = "0xcff6c70e174a4b8c020a81cebb75ce131c285916";
 let topics = [[
-    transfer,
-    reflect
+    sync
 ]];
 let startingBlock = "0x300000"; // AVAX - 0x300000
 let toBlock = "0x325000"; // AVAX - 0x400000
@@ -70,6 +69,6 @@ let logs = [];
         }
         console.log(logs);
     } while (startingBlock != lastAcceptedBlock || (newLogs && (startingBlock != lastAcceptedBlock)));
-    fs.writeFileSync("avaxTnglV3Logs.txt", JSON.stringify(logs));
+    fs.writeFileSync("ftmTnglV3LpLogs.txt", JSON.stringify(logs));
 
 })();

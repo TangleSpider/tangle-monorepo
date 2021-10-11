@@ -111,6 +111,7 @@ let getFtmTnglV3Balances = () => {
     let piecesPerToken = initPieces / initTokens;
     let totalSupply = initTokens;
     let logs = JSON.parse(fs.readFileSync("./logs/ftmTnglV3Logs.txt", "utf8"));
+    let reflect = "0xfb1cca2745e309250590c0f70d53bdbce480caeb94e9f16af0bf5b20ae9e16a7";
     let transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
     let balances = {};
     logs.forEach((log, i) => {
@@ -129,9 +130,15 @@ let getFtmTnglV3Balances = () => {
             if (address && receiver.match(addressRegExp))
                 console.log(`${formattedAddress} ${"received".padStart(16, ' ')} ${fmtAmtDec(amount / piecesPerToken, 9)} ORBI balance now ${fmtAmtDec(balances[receiver] / piecesPerToken, 9)}`);
         };
+        let handleReflect = () => {
+            console.log(log);
+        };
         switch (topics[0]) {
             case transferTopic:
                 handleTransfer();
+                break;
+            case reflect:
+                handleReflect();
                 break;
         }
     });
@@ -295,13 +302,14 @@ if (address && orbiBalances[address])
 //console.log(orbiBalances);
 let orbiV2Balances = getOrbiV2Balances();
 //console.log(orbiV2Balances);
-/*let ftmTnglV3Balances = getFtmTnglV3Balances();
-let ftmTnglV3Interactors = Object.keys(ftmTnglV3Balances)*/
-let avaxTnglV3Balances = getAvaxTnglV3Balances();
+let ftmTnglV3Balances = getFtmTnglV3Balances();
+let ftmTnglV3Interactors = Object.keys(ftmTnglV3Balances);
+//console.log(ftmTnglV3Balances);
+/*let avaxTnglV3Balances = getAvaxTnglV3Balances();
 let avaxTnglV3Interactors = Object.keys(avaxTnglV3Balances)
 let interactors = avaxTnglV3Interactors;
 
-let tree = [interactors.map(a => keccak256(a))];
+/*let tree = [interactors.map(a => keccak256(a))];
 console.log(tree[0].length);
 for (let j = 0; j < Math.ceil(Math.log2(tree[0].length)); j++) {
     let newLayer = [];
