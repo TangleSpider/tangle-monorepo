@@ -109,7 +109,11 @@ let processWebQueue = webQueueObject => {
     webQueue.shift();
     switch (webQueueObject.method) {
         case "start":
+<<<<<<< HEAD
             if (ethers.utils.keccack256("0x" + webQueueObject.params.password.split('').map(c => { return c.charCodeAt(0).toString(16); }).join('')) != "[REDACTED]58") {
+=======
+            if (ethers.utils.keccack256("0x" + webQueueObject.params.password.split('').map(c => { return c.charCodeAt(0).toString(16); }).join('')) != "0x9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658") {
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
                 goNext({ message: "password incorrect" });
             } else {
                 goNext({ message: "password correct" });

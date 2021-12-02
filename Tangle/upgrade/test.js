@@ -29,8 +29,13 @@ let getOrbiBalances = () => {
     let piecesPerToken = initPieces / initTokens;
     let totalSupply = initTokens;
     let logs = JSON.parse(fs.readFileSync("./logs/orbiLogs.txt", "utf8"));
+<<<<<<< HEAD
     let transferTopic = "[REDACTED]ef";
     let rebaseTopic = "[REDACTED]f2";
+=======
+    let transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    let rebaseTopic = "0x72725a3b1e5bd622d6bcd1339bb31279c351abe8f541ac7fd320f24e1b1641f2";
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     let balances = {};
     let fromAzizLpBalances = {};
     let fromArsuLpBalances = {};
@@ -111,8 +116,13 @@ let getFtmTnglV3Balances = () => {
     let piecesPerToken = initPieces / initTokens;
     let totalSupply = initTokens;
     let logs = JSON.parse(fs.readFileSync("./logs/ftmTnglV3Logs.txt", "utf8"));
+<<<<<<< HEAD
     let reflect = "[REDACTED]a7";
     let transferTopic = "[REDACTED]ef";
+=======
+    let reflect = "0xfb1cca2745e309250590c0f70d53bdbce480caeb94e9f16af0bf5b20ae9e16a7";
+    let transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     let balances = {};
     logs.forEach((log, i) => {
         let { topics, data, blockNumber } = log;
@@ -156,7 +166,11 @@ let getAvaxTnglV3Balances = () => {
     let piecesPerToken = initPieces / initTokens;
     let totalSupply = initTokens;
     let logs = JSON.parse(fs.readFileSync("./logs/avaxTnglV3Logs.txt", "utf8"));
+<<<<<<< HEAD
     let transferTopic = "[REDACTED]ef";
+=======
+    let transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     let balances = {};
     logs.forEach((log, i) => {
         let { topics, data, blockNumber } = log;
@@ -190,8 +204,13 @@ let getAvaxTnglV3Balances = () => {
 let getOrbiV2Balances = () => {
     let getOrbiV2BalancesFromLp = () => {
         let logs = JSON.parse(fs.readFileSync("./logs/orbiV2LpLogs.txt", "utf8"));
+<<<<<<< HEAD
         let transfer = "[REDACTED]ef";
         let sync = "[REDACTED]d1";
+=======
+        let transfer = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        let sync = "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1";
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
         let reserves = [null, null];
         let balances = {};
         let staked = {};
@@ -253,8 +272,13 @@ let getOrbiV2Balances = () => {
     let piecesPerToken = initPieces / initTokens;
     let totalSupply = initTokens;
     let logs = JSON.parse(fs.readFileSync("./logs/orbiV2Logs.txt", "utf8"));
+<<<<<<< HEAD
     let transferTopic = "[REDACTED]ef";
     let rebaseTopic = "[REDACTED]7f";
+=======
+    let transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    let rebaseTopic = "0x0b7e711d124e53e17b23a99f1ccbb839f29f7988434c16a32905c49fd25c067f";
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     let balances = {};
     let toAzizV2Lp = {};
     let toArsuV2Lp = {};
@@ -348,7 +372,11 @@ let generateProof = (tree, index) => {
     return proof;
 };
 console.log(generateProof(tree, 0));
+<<<<<<< HEAD
 //console.log(keccak256("[REDACTED]61" + "[REDACTED]"))
+=======
+//console.log(keccak256("0x24f59a773125f8197d4688af1c666caacbd6548906da9ff5643e76dd757d1261" + "441382a86be5dfa4cb8412c7e14eb268abc1df733c579b03eb2c77d54d345ee2"))
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
 
 let verifyProof = (proof, root, leaf, index) => {
     let hash = keccak256(leaf);

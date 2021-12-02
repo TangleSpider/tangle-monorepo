@@ -38,6 +38,7 @@ let evmJsonRpcRequest = async requestObject => {
         }));
         req.end();
     });
+<<<<<<< HEAD
     let response = await requestPromise;
     //console.log(response);
     try {
@@ -46,6 +47,10 @@ let evmJsonRpcRequest = async requestObject => {
         console.log(response);
         console.log(e);
     }
+=======
+    //console.log(await requestPromise);
+    return JSON.parse(await requestPromise);
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
 };
 
 module.exports = exports = evmJsonRpcRequest;

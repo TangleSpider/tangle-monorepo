@@ -144,7 +144,11 @@ contract Transferrer {
                 value
             )
         );
+<<<<<<< HEAD
         require(success, "executePostTransferHooks");
+=======
+        if (success) {}
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     }
 
     function getMappingId(string memory name)
@@ -158,7 +162,11 @@ contract Transferrer {
                 name
             )
         );
+<<<<<<< HEAD
         require(success, "getMappingId transferrer");
+=======
+        require(success, "getMappingId staticdelegate");
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
         assembly { id := add(result, 0x40) }
     }
 

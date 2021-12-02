@@ -1,5 +1,8 @@
 let keccak256 = require("@ethersproject/keccak256").keccak256;
+<<<<<<< HEAD
 let path = require("path");
+=======
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
 let sig = (selector, short = false) => {
     return keccak256(
         "0x" +
@@ -16,8 +19,12 @@ let longAddress = address => {
     return "0x" + address.toLowerCase().substr(2).padStart(64, '0');
 };
 let getBalancesAtBlock = atBlock => {
+<<<<<<< HEAD
     let jsonPath = path.join(__dirname, "logs.txt");
     let logs = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+=======
+    let logs = JSON.parse(fs.readFileSync("./ftmTnglV3Lp/logs.txt", "utf8"));
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
     let balances = {};
     logs.forEach((log, i) => {
         let { topics, data, blockNumber } = log;
@@ -25,12 +32,15 @@ let getBalancesAtBlock = atBlock => {
         if (topics[0] == transfer) {
             let sender = topics[1].toLowerCase();
             let receiver = topics[2].toLowerCase();
+<<<<<<< HEAD
             if (
                 receiver == longAddress("0x2f96f61a027b5101e966ec1ba75b78f353259fb3".toLowerCase()) ||
                 sender == longAddress("0x2f96f61a027b5101e966ec1ba75b78f353259fb3".toLowerCase())
             ) {
                 return;
             }
+=======
+>>>>>>> 825d69c2ad34fe04caae69b843f5255f92613b8e
             let amount = BigInt(data);
             if (!balances[sender]) balances[sender] = 0n;
             if (!balances[receiver]) balances[receiver] = 0n;
