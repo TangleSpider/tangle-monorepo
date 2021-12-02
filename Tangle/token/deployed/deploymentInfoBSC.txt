@@ -1,0 +1,13 @@
+BSC-TNGL       0xd17584633bc8d190e5a14502976dad9640456d6d
+        Info                0xa943F863fA69ff4F6D9022843Fb861BBEe45B2ce
+        Balances            0xc4bB29EF01388886038188E37F6F2Fe03ddD29d0
+        Allowances          0x0669F4915c552fC5E34FEBdeAa12aC856fcE09b5
+        MappingIDs          0x3afb1AA98C5Deaa3272d0E78f05f05E9572B8B30
+        Approver            0x59e8ed593a60df8b91cdf6b38b55cfb55b4715b6
+        Transferrer         0x21ce0A31A7986a73f66D37672fF53a8b3289A0C2
+        PreTransformer      0x079212a89d35d2bf2e48860ff9cebf5e740883c4
+        TaxMan              0xbe187f239ea703c8f71c4b02139b697f22a1a890
+        PostTransferHooks   0x124c65ab99ad5f0b337d8d8f1831693aaf8efeec
+        Reflector           0x84e450f230343506623db729592e5b754706a6ed
+BSC-TNGL:BNB  0x948d96fdf3cb1a0a9196f437c271f4a7f599a694
+    https://bscscan.com/address/0x948d96fdf3cb1a0a9196f437c271f4a7f599a694

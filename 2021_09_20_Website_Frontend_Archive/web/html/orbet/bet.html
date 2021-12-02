@@ -1,0 +1,110 @@
+<head>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+	<link rel='stylesheet' href='../../css/betStylesheet.css'>
+</head>
+<body>
+	<div id="mask">
+	</div>
+	<div id="betMenuContainer" class="menuContainer">
+		<div id="betMenu" class="menu">
+			<div id="betMenuBody" class="menuBody">
+				<div id="betMenuInputContainer" class="menuBodyContainer">
+					<div class="betMenuInputHeader">
+						Position
+					</div>
+					<div class="betMenuInputContainer">
+						<div>
+							<input type="radio" id="Under" class="betMenuInputRadio" name="position">
+							<label for="Under">Under</label>
+						</div>
+						<div>
+							<input type="radio" id="NotUnder" class="betMenuInputRadio" name="position">
+							<label for="NotUnder">Not Under</label>
+						</div>
+					</div>
+					<div class="betMenuInputHeader">
+						Amount
+					</div>
+					<div class="betMenuInputContainer">
+						<input id="amountInput" class="betMenuInput" placeholder="0.00000000">
+					</div>
+				</div>
+			</div>
+			<div id="betButtonContainer" class="betButtonContainer">
+				<div id="betButtonLoaderOffset" class="loaderOffset"></div>
+				<button id="takePositionButton" class="betButton">Connect Wallet</button>
+				<div id="betButtonLoader" class="loader"></div>
+			</div>
+		</div>
+	</div>
+	<div id="txHistoryMenuContainer" class="menuContainer">
+		<div id="txHistoryMenu" class="menu">
+			<div id="betMenuHeader">
+				Transaction History
+			</div>
+			<div id="txHistoryMenuBody" class="menuBody">
+				<div id="txHistoryMenuBodyContainer" class="menuBodyContainer">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="contentContainer">
+		<div class="headerContainer">
+			<h1 id="betIdHeader">Bet ID</h1>
+			<div id="betMenuButtonContainer" class="betButtonContainer">
+				<div id="betMenuButtonLoaderOffset" class="loaderOffset"></div>
+				<button id="betButton">Connect Wallet</button>
+				<div id="betMenuButtonLoader" class="loader"></div>
+			</div>
+		</div>
+		<h3>Your Position</h3>
+		<div class="infoContainer">
+			<div class="infoKeys">
+				<div class="infoKey">Position</div>
+				<div class="infoKey">Amount</div>
+			</div>
+			<div class="infoValues">
+				<div id="position" class="infoValue"></div>
+				<div id="amount" class="infoValue"></div>
+			</div>
+		</div>
+		<h3>Bet Details</h3>
+		<div class="infoContainer">
+			<div class="infoKeys">
+				<div class="infoKey">Bet Status</div>
+				<div class="infoKey">Observed Token</div>
+				<div class="infoKey">Observed Wallet</div>
+				<div class="infoKey">Threshold</div>
+				<div class="infoKey">Expiry Date</div>
+				<div class="infoKey">Under : No Under Ratio</div>
+				<div class="infoKey">Total Under Bet Amount</div>
+				<div class="infoKey">Total No Under Bet Amount</div>
+				<div class="infoKey">Bet Initiator</div>
+			</div>
+			<div class="infoValues">
+				<div id="betStatus" class="infoValue"></div>
+				<div id="observedToken" class="infoValue"></div>
+				<div id="observedWallet" class="infoValue"></div>
+				<div id="threshold" class="infoValue"></div>
+				<div id="expiry" class="infoValue"></div>
+				<div id="ratio" class="infoValue"></div>
+				<div id="underAmount" class="infoValue"></div>
+				<div id="notUnderAmount" class="infoValue"></div>
+				<div id="initiator" class="infoValue"></div>
+			</div>
+		</div>
+		<div id="footer">
+			<div id="footerDivider" class="rowDivider"></div>
+			<button id="txHistoryButton" class="createBetButton">Tx History (0 Pending)</button>
+		</div>
+		<div class="betButtonContainer">
+			<div id="endBetButtonLoaderOffset" class="loaderOffset"></div>
+			<button id="endBetButton" class="createBetButton">End Bet</button>
+			<div id="endBetButtonLoader" class="loader"></div>
+		</div>
+	</div>
+	<script src="../../js/ethjs.min.js"></script>
+	<script src="../../js/jquery.min.js"></script>
+	<script src="../../js/bet.js"></script>
+</body>

@@ -1,0 +1,52 @@
+#!/bin/bash
+
+init() {
+	local chain=$1
+	echo "killing processes using port 80${chain}"
+	lib/pkill 80${chain}
+	echo "clearing directory ${chain}"
+	while ! rm -rf ${chain}/* 2> ${chain}/logs; do sleep 0.1; done
+	echo "get new addr for ${chain}"
+	local addr=$(lib/newaccount ${chain})
+	echo "import addr for ${chain}"
+	lib/importaccount ${chain}
+	echo "create genesis.json for ${chain}"
+	lib/genesiscreate ${chain} ${addr}
+	echo "init genesis block for ${chain}"
+	lib/genesisinit ${chain}
+	echo "start geth for ${chain}"
+	lib/gethstart ${chain} ${addr}
+	echo "wait for ${chain} to start"
+	while [ ! "$(ss -plH "sport = 80${chain}")" ]; do sleep 0.1; done
+	echo "initial eth transfer on ${chain}"
+	lib/inittransfer ${chain}
+	local txhash
+	echo "deploying trc on ${chain}"
+	txhash=$(lib/deploytrc ${chain})
+	echo "deploytrc:${txhash}" >> $1/logs
+	echo "deploying weth on ${chain}"
+	txhash=$(lib/deployweth ${chain})
+	echo "deployweth:${txhash}" >> $1/logs
+	local trcaddress=$(lib/gettrcaddress ${chain})
+	while [ "$trcaddress" = "null" ]
+		do trcaddress=$(lib/gettrcaddress ${chain})
+	done
+	echo "trcaddress:${trcaddress}" >> $1/logs
+	local wethaddress=$(lib/getwethaddress ${chain})
+	while [ "$wethaddress" = "null" ]
+		do wethaddress=$(lib/getwethaddress ${chain})
+	done
+	echo "wethaddress:${wethaddress}" >> $1/logs
+	echo "approving trc to spend weth on ${chain}"
+	txhash=$(lib/approvetrc ${chain})
+	echo "approvetrc:${txhash}" >> $1/logs
+	echo "depositing eth on chain ${chain}"
+	txhash=$(lib/depositeth ${chain})
+	echo "depositeth:${txhash}" >> $1/logs
+	echo "chain ${chain} ready"
+}
+
+for i in {14..15}
+	do init ${i} &
+done
+wait

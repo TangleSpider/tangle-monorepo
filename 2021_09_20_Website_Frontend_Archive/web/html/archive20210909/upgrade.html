@@ -1,0 +1,135 @@
+<head>
+	<link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
+</head>
+<body>
+	<link rel='stylesheet' href='../css/stylesheet.css'>
+	<link rel='stylesheet' href='../css/presale.css'>
+	<div id='nav'>
+		<div id='navContainer0'>
+			<div id='navContainer1'>
+				<a class="navlink" href="https://orbicular.io/home">Home</a>
+				<a class="navlink" href="https://orbicular.io/roadmap">Roadmap</a>
+				<a class="navlink" href="https://orbicular.io/amaArchive">AMA Archive</a>
+				<a class="navlink" href="https://orbicular.io/whitepaper">Whitepaper Archive</a>
+				<a class="navlink" href="https://orbicular.io/orbiToken">Tokens</a>
+				<a class="navlink" href="https://orbicular.io/staking">Staking</a>
+				<a class="navlink" href="https://orbicular.io/staking">Upgrade</a>
+			</div>
+		</div>
+	</div>
+	<div class="container0">
+		<div class="container1">
+			<div class="heading">
+				Upgrade Swapper
+			</div>
+			<h2 style="color:#a0a">
+				To upgrade your V1 twin tokens, you will need to approve them first. You can use the "Approve" buttons below. The values to the right of those buttons will update automatically once approved.
+			</h2>
+			Orbicular Address: 0x11A2Ab94adE17e96197C78f9D5f057332a19a0b9
+			<br>
+			OrbicularV2 Address: 0x2De27D3432d3188b53B02137E07B47896D347D45
+			<div class="divider"></div>
+			Azizos Address: 0xb637e3bd588871a98a212671bf2d4ba4a2f5183b
+			<br>
+			AzizosV2 Address: 0x18d0D5ab631A8bE9343d8b650335BBA50553AdaD
+			<div class="divider"></div>
+			Arsu Address: 0x5a23d90cdeb30de09fab5ed159ec4b73fb475a61
+			<br>
+			ArsuV2 Address: 0xBb586dda90CbfE82f486e98372ECb558f9a5a4b9
+			<div class="divider"></div>
+			SwapperV2 Contract Address: 0x0C0EfB13C5ED869c711810A01f8f8B616E340db4
+			<br>
+			<br>
+			<br>
+			Swap rate: 1 AZIZ : 1 AZIZv2, or 1 ARSU : 1 ARSUv2, or 1 ETH : 0.016 AZIZv2, or 1 ETH : 0.016 ARSUv2
+			<br>
+			<button id="walletconnectButton" style="margin:5px">Enable walletconnect</button>
+			<div>
+				Balance: <div id="ethBalanceNum" class="balanceNum">0</div> ETH
+				<br>
+				Balance: <div id="orbiBalanceNum" class="balanceNum">0</div> ORBI
+				<br>
+				Balance: <div id="azizBalanceNum" class="balanceNum">0</div> AZIZ
+				<br>
+				Balance: <div id="arsuBalanceNum" class="balanceNum">0</div> ARSU
+				<br>
+				Balance: <div id="orbiV2BalanceNum" class="balanceNum">0</div> ORBIv2
+				<br>
+				Balance: <div id="azizV2BalanceNum" class="balanceNum">0</div> AZIZv2
+				<br>
+				Balance: <div id="arsuV2BalanceNum" class="balanceNum">0</div> ARSUv2
+				<br>
+				<button id="orbiApprove">Approve</button> Approved ORBI: <div id="orbiV2BalanceNum" class="balanceNum">0</div> ORBI
+				<br>
+				<button id="azizApprove">Approve</button> Approved AZIZ: <div id="arsuV2BalanceNum" class="balanceNum">0</div> AZIZ
+				<br>
+				<button id="arsuApprove">Approve</button> Approved ARSU: <div id="arsuV2BalanceNum" class="balanceNum">0</div> ARSU
+			</div>
+			<div class="twinToken">
+				<div class="twinTokenHeading">
+					<div class="twinTokenHeader">
+						Upgrade Orbicular Token
+					</div>
+				</div>
+				<div class="twinTokenSwapInfo">
+					<div class="ethInputContainer">
+						<input id="orbiToSwap" class="orbiInput" placeholder="ORBI to swap (ORBIv2)">
+					</div>
+					<button id="upgradeOrbi">Upgrade</button>
+				</div>
+				<div>
+					OrbicularV2 to receive: <span id="orbiV2ReceiveUpgrade">0</span> ORBIv2
+				</div>
+			</div>
+			<div class="twinToken">
+				<div class="twinTokenHeading">
+					<div class="twinTokenHeader">
+						Upgrade Twin Tokens
+					</div>
+				</div>
+				<div class="twinTokenSwapInfo">
+					<div class="ethInputContainer">
+						<input id="twinToSwapAzizos" class="twinInput" placeholder="AZIZ to swap (AZIZv2)">
+						<br>
+						<input id="twinToSwapArsu" class="twinInput" placeholder="ARSU to swap (ARSUv2)">
+					</div>
+					<button id="upgrade">Upgrade</button>
+				</div>
+				<div>
+					AzizosV2 to receive: <span id="azizV2ReceiveUpgrade">0</span> AZIZv2
+					<br>
+					ArsuV2 to receive: <span id="arsuV2ReceiveUpgrade">0</span> ARSUv2
+				</div>
+			</div>
+			<div class="twinToken">
+				<div class="twinTokenHeading">
+					<div class="twinTokenHeader">
+						Buy TwinV2 Tokens
+					</div>
+				</div>
+				<div class="twinTokenSwapInfo">
+					<div class="ethInputContainer">
+						<input id="ethToSwapBoth" class="ethInput" placeholder="ETH to swap (AZIZv2 & ARSUv2)">
+					</div>
+					<button id="buy">Buy</button>
+				</div>
+				<div>
+					AzizosV2 to receive: <span id="azizV2ReceiveBuy">0</span> AZIZv2
+					<br>
+					ArsuV2 to receive: <span id="arsuV2ReceiveBuy">0</span> ARSUv2
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id='footer'>
+		<div id="footerContainer0">
+			<a class="footerlink" href="https://twitter.com/CryptoOrbicular">Twitter</a>
+			<a class="footerlink" href="https://t.me/OfficialOrbicular">Telegram</a>
+		</div>
+	</div>
+	<script src="../js/walletconnect.js"></script> 
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/presale.js"></script> 
+	<script src="../js/navbar.js"></script>
+	<script src="../js/footer.js"></script>
+</body>

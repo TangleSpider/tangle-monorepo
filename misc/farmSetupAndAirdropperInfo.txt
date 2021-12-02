@@ -1,0 +1,150 @@
+new
+transferrer	0x32Bc8C5998eADe66fa3E5A426C2c0DF70CB7432b
+reflector	0xF034eB26E462E940aE72a42cC320cb3819DAAa8b
+farms		0x7F4aFCFCCEa4728Ef8EC6AB8052737A71372e6b3
+staking		0x47ddD0bc7704e36eE821EDb777afD733CAa26DC5
+airdropping	0x04B7cfbF1883b78224b93F80Ae402EDA2f6D25DE
+
+
+[
+	["0x32Bc8C5998eADe66fa3E5A426C2c0DF70CB7432b",1,["0xa9059cbb","0x23b872dd"]],
+	["0xF034eB26E462E940aE72a42cC320cb3819DAAa8b",1,["0x54c5f3c5","0x46216e71","0xa1069b65"]],
+	["0xF034eB26E462E940aE72a42cC320cb3819DAAa8b",0,["0x3f514b0d"]],
+	["0x7F4aFCFCCEa4728Ef8EC6AB8052737A71372e6b3",0,["0xf854a27f","0x11f3a2cf","0x20117f30","0x871fd682","0x2e215141","0x42d86693","0x0239007c","0x4809315b"]],
+	["0x04B7cfbF1883b78224b93F80Ae402EDA2f6D25DE",0,["0x83753561","0x9ba136d5","0xa4b5fa56","0x1497f47c","0xca6be7f1","0x13da18ec"]],
+	["0x47ddD0bc7704e36eE821EDb777afD733CAa26DC5",0,["0x5b7c132d","0x3221c93f","0x7c1f751f"]],
+	["0x965A22fb58b47ee5b4365Ef1Fc7C33cF4A73c66e",0,["0x67243482"]]
+]
+[REDACTED][REDACTED][REDACTED][REDACTED]a7f599a694
+set mapping id farms: Tangle.Farms0
+do farmCut
+change liquidityAddress
+set minCropDustAmount
+
+chain	nPrice	nAmt	value	   %
+ETH	  3435	6.50	22328	55.0
+BSC	   464	7.50	 3480	8.57
+FTM	  1.21	 250	  303	0.74
+AVAX	  37.6	22.5	  846	2.08
+ARBI	  3615	0.85	 3073	7.57
+
+830.93
+
+65 Tangle in 44 minutes, or 0.0246 TNGL/s
+using 50k Tangle initial added to liquidity and 7.5 FTM
+
+97971401493,5510848975,103482250468
+98327241194,5837727870,104164969064
+
+355839701
+326878895
+
+966180971965790649
+
+addresses that need correction airdrop because the way i handled points was retarded:
+0xe0140b519c72B5706aa06539729A8186749e4a2b (FTM, princess apple sauce)
+0xf94dcEeB045E0eBBee2D477d5e3fB0250b43a919 (AVAX, degen d) GOOD
+0xa948FC9A15C3C01a094BB70595D135b9A689a13b (FTM, crypto boomer)
+0xDF8f5313224d93Bf042cC1c765F3480792bd4442 (FTM, Caner) GOOD
+0x2F6eDE25f37A9Ec0C1Cf2F26C98369261f21C39f (AVAX, WhiteRose) GOOD
+0xE3b5d677199000d6f2d71Bf9Dd78a2C86029FCA5 (AVAX, Jake) GOOD
+0xC8e1f4AC50D7d41ce3daa47dd8aE5BD884B4E30F (AVAX, xpirimint) GOOD
+0xaebbE17d045f4533800Fb37E157C22E8f399672a (AVAX, Jed) GOOD
+
+whale club
+
+727804509590925577
+708901373794119373
+727804509590925577
+727804509590925577
+
+Your Airdrop Calculation (At Snapshot) - AVAX
+Total in Rewards System: 20,898,870.632097163 TNGLv3
+
+TNGLv3 Balance: 26,770.180088986 TNGLv3
+Market Making Points: 11 (out of 458 total)
+Airdropping Points: 30 (out of 7489 total)
+Staking Points: 0 (out of 25604934470449897 total)
+TangleV3 Equivalent from Market Making Points: 167,312.646981855 TNGLv3
+TangleV3 Equivalent from Airdropping Points: 27,906.089774465 TNGLv3
+TangleV3 Equivalent from Staking Points: 0 TNGLv3
+TNGLv3 Liquidity Balance: 0 TNGLv3
+TNGLv3 Equivalent from Liquidity: 0 TNGLv3
+
+Total to be Airdropped: 221,988.916845306 TNGLv3
+Sent in First Airdrop: 29,885.638566004 TNGLv3 
+Sent in Second Airdrop: 192,103.278279302 TNGLv3
+
+1000000000
+600000,3,4,4011920320862979,221272656842568,1635362033,35647,7851148501583337099,218089781152803310
+600000,1,4,1337306773620993,1198172169859270,0,1635373435,0,0
+
+
+JAKE FTM HEADER NOT FOUND ERROR (FIXED)
+
+
+
+
+Fjpm
+0x756e87e8fc39ae79d3d0c0fe8f8561316d77451a
+DID NOT RECEIVE AIRDROP BUT HAD STAKED TANGLE (FIXED)
+
+"if you have staked or airdropped Tangle, but have no rewards, DM me your address so I can troubleshoot" (FIXED)
+
+"if you have not received an airdrop but you held ORBIv2, DM me your address so I can troubleshoot"
+
+DannyK thought he should have got more, but actually should have got less, need to reverse airdrop
+
+Dr. Manhattan should actually get some more on Fantom
+
+Bulu should actually have less, need to reverse airdrop
+
+
+718827508470585706
+730550093442762169
+
+
+697466099184775755
+732528135277098330
+
+metrics dashboard
+
+  [ '0x3f049e5850229d18f01460dfda38c3ea6422b5a4', 118652118358398849n ],
+  [ '0x7d07b59090f481ba8ff7a67422c04595cb2c93b2', 38004300511125419n ],
+  [ '0x38fb23d7f36a03696bc02606e33e2d5e1b9fe283', 32798073963525634n ],
+  [ '0xdd858d2b1abe7e24befe92c316ed72cb678d8877', 29596012559321066n ],
+  [ '0x864bdb95d6718bda4156f99930591e95d6671fc1', 14853682606338731n ],
+  [ '0x307d632c817ca584997c964154f12069c23d13d8', 13318059294818779n ],
+  [ '0x4232bede83c9a345e06b783662d7b950196c2dbc', 10968890409070326n ],
+  [ '0xd65c4ad25a4b79f47d3971e4bfcb3d7be64ad007', 10136453904888105n ],
+  [ '0x91549058fa9140c41f5f84e7a06a8b90be97da8f', 9462426091091370n ],
+  [ '0xbed5c4e636756dc373158a80d953719b4b405a3c', 8619181463124201n ],
+  [ '0x20668f72ef3256a608947ae12c2c8a04e908560e', 7141245548462923n ],
+  [ '0x984895138a2f2df973f7bf86e75a407fc4761689', 5684040709039513n ],
+  [ '0x026bc5e126e133ab2d662bae650f6abfa2ad5d6e', 5656642730287135n ],
+  [ '0xa54a3f82f720f5c482a5353bd0a3e5b777826961', 5494708007472236n ],
+  [ '0x0b6f51c9f8d1ba4f537fdcf987fe1045a7f06512', 5188203366660957n ],
+  [ '0x322475c0d45454f7fbe944d82917bc8175e4f6eb', 4860135393321492n ],
+  [ '0x38b59ff5ea9fb9f9fef6a5d8d5cccf7c631d1708', 4411679567669065n ],
+  [ '0x03b09cd3425ff58109fb182ee2eca8b073413677', 4082244919418382n ],
+  [ '0x4fc0c5773f1e67654c2602d13377a6ed4aa7e224', 4013837769544802n ],
+  [ '0xeae5dc5c95e50284f615539f374ac07d40b33849', 4008920157034317n ],
+
+951094798658986521
+875679641936471207
+634721682558914219
+620708289347980645
+488348467061381399
+
+reflectCut add liquidity
+
+whole setup
+change minHoldAmount to 1
+set taxman	[[0,[1,1000,"0x05FEc6890b63A1Bb9E9E96cdd1aFEffb394C04c4"]],[0,[1,100,"0x0000000000000000000000000000000000000000"]],[0,[39,1000,""]]]
+set reflector	[[0,["0x0000000000000000000000000000000000000000",true]],[0,["0x9De2b19dEaDBeeFB821D00c39289919DD5313566",false]],[0,["",false]],[0,["",false]]]
+set farms	[[0,[600000,3,4,0,0,0,0,0,0,"staking"]],[0,[600000,1,4,0,0,0,0,0,0,"airdropping"]]]
+blacklist liquidity address from receiving airdrop rewards	[[0,""]]
+set cropDustAmount to 1000000000
+set liquidity address to liquidity pool address
+
+approve address(this) to spend liquidity before liquidity can be staked

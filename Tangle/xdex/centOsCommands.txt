@@ -1,0 +1,6 @@
+firewall-cmd --zone=public --list-all
+    list all firewall configurations
+firewall-cmd --zone=public --permanent --add-port=8000/tcp
+    add port 8000 (tcp protocol) permanently
+systemctl stop firewalld, pkill -f firewalld, systemctl start firewalld
+    restart firewall

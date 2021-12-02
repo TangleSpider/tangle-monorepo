@@ -1,0 +1,13 @@
+P14-TNGL    0xD17584633bc8D190E5A14502976daD9640456D6d
+        Info
+        Balances
+        Allowances
+        MappingIDs
+        Approver
+        Transferrer         0xD1dc02D13766bD9D6d0CD63Ef4b38C573dfAc908
+        PreTransformer
+        TaxMan
+        PostTransferHooks
+        Reflector
+
+TTP14       

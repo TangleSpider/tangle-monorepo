@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>orbicular.io - staking</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="../images/favicon.png">
+
+        <!-- App css -->
+        <link href="../css/icons.css" rel="stylesheet"/>
+        <link href="../css/app-creative.css" rel="stylesheet" id="light-style" />
+        <link href="../css/app-creative-dark.css" rel="stylesheet" id="dark-style" />
+        <link rel='stylesheet' href='../css/stylesheet.css'>
+    </head>
+
+    <body class="loading" data-layout="topnav" data-layout-config='{"layoutBoxed":false,"darkMode":false,"showRightSidebarOnStart": true}'>
+        <!-- Begin page -->
+        <div class="wrapper">
+
+            <!-- ============================================================== -->
+            <!-- Start Page Content here -->
+            <!-- ============================================================== -->
+
+            <div class="content-page">
+                <div class="content" stlye="margin-bottom: 30px">
+                	<div id='nav'>
+						<div id='navContainer0'>
+							<div id='navContainer1'>
+								<a class="navlink" href="https://orbicular.io">Home</a>
+							</div>
+						</div>
+					</div>
+
+                    
+                    <!-- Start Content-->
+                    <div class="container-fluid">
+
+                    	<div class="row">
+                    		<div class="col-12" style="min-height: 55px;margin: 30px 0px; display: flex; justify-content: center;">
+		                    	<div class="row interactionPanelContainer0">
+									<div class="row interactionPanelContainer1">
+										<div class="interactionPanel">
+											<div class="interactionPanelHeading">
+												<span id="v1" class="versionSelector">v1</span>
+												<span style="color:black;margin:0 7px">|</span>
+												<span id="v2" class="versionSelector activeVersion">v2</span>
+											</div>
+										</div>
+										<div class="divider"></div>
+										<div class= "interactionPanel">
+											<div class="interactionPanelHeading">
+												<button id="orbiButton" class="btn btn-dark btn-rounded">Buy ORBIv2</button>
+											</div>
+											<div class="interactionPanelBody">
+												<div class="labels">
+													Circulating Supply: 
+													<br>
+													Uniswap Price (USD/ORBI): 
+													<br>
+													Market Cap (USD): 
+													<br>
+													% Change Next Rebase:
+												</div>
+												<div id="orbiValues" class="values">
+													<span id="orbiCircSupply"></span>
+													<br>
+													<span id="orbiPrice"></span>
+													<br>
+													<span id="orbiMCap"></span>
+													<br>
+													<span id="orbiPctRebase"></span>
+												</div>
+											</div>
+										</div>
+										<div class="divider"></div>
+										<div class= "interactionPanel">
+											<div class="interactionPanelHeading">
+												<button id="azizButton" class="btn btn-dark btn-rounded">Buy AZIZv2</button>
+											</div>
+											<div class="interactionPanelBody">
+												<div class="labels">
+													Circulating Supply: 
+													<br>
+													Uniswap Price (USD/AZIZ): 
+													<br>
+													Market Cap (USD): 
+													<br>
+													% Change Next Rebase:
+												</div>
+												<div id="azizValues" class="values">
+													<span id="azizCircSupply"></span>
+													<br>
+													<span id="azizPrice"></span>
+													<br>
+													<span id="azizMCap"></span>
+													<br>
+													<span id="azizPctRebase"></span>
+												</div>
+											</div>
+										</div>
+										<div class="divider"></div>
+										<div class="interactionPanel">
+											<div class="interactionPanelHeading">
+												<button id="arsuButton" class="btn btn-dark btn-rounded">Buy ARSUv2</button>
+											</div>
+											<div class="interactionPanelBody">
+												<div class="labels">
+													Circulating Supply: 
+													<br>
+													Uniswap Price (USD/ARSU): 
+													<br>
+													Market Cap (USD): 
+													<br>
+													% Change Next Rebase:
+												</div>
+												<div id="arsuValues" class="values">
+													<span id="arsuCircSupply"></span>
+													<br>
+													<span id="arsuPrice"></span>
+													<span style="display:none" id="azizOrbiPrice"></span>
+													<span style="display:none" id="arsuOrbiPrice"></span>
+													<br>
+													<span id="arsuMCap"></span>
+													<br>
+													<span id="arsuPctRebase"></span>
+												</div>
+											</div>
+											<div class="divider"></div>
+											<div id="rebasePanel">
+												<div>
+													<h4 id="timeUntilHeader">Time Until Next Rebase</h4>
+												</div>
+												<div>
+													<h2><span id="rebaseCountdown">00:00:00</span></h2>
+												</div>
+												<div>
+													<button id="rebaseButton" class="btn">Rebase</button>
+												</div>
+											</div>
+										</div>
+		                			</div>
+		                		</div>
+		                	</div>
+						</div>
+
+                    	<div class="row">
+                    		<div class="col-12" style="min-height: 55px;margin: 30px 0px; display: flex; justify-content: center;">
+                    			<button id="walletconnectButton" class="btn btn-dark btn-rounded">Enable Walletconnect</button>
+                    		</div>
+                    	</div>
+
+                    	<div class="row" style="display: flex; justify-content: center; align-items: center">
+	                    	<div class="col-xl-4 col-lg-8">
+	                    		<div class="card widget-flat" style="display: block">
+	                    			<div class="card-body card-azizos" data-closedheight='94px' data-openheight='307px'>
+	                    				<div style="display: flex"> 
+		                    				<div style="flex-grow: 5; max-width: 360px; min-width: 262px; margin-right: 10px">
+		                    					<h3>
+			                    					Azizos
+		                    					</h3>
+		                    					<div id='lockedLabelAzizos' style='display: none;'>
+			                    					Locked: <span id="azizosLocked">0.000000000</span>
+		                    					</div>
+		                    					<div id='immediateRewardAzizos' style='margin-top: 12.5px; display: none;'>
+		                    						Immediate Reward: <span id='immediateRewardNumAzizos'>0.000000000</span> ARSU <span id='azizImmPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 5">
+		                    					<div class="unlockDateContainer">
+			                    					<div>
+				                    					Balance: <span id="azizosBalanceNum">0.000000000</span>
+			                    					</div>
+			                    				</div>
+		                    					<div id='unlockDateLabelAzizos' style='display: none'>
+			                    					Unlock Date: <span id='unlockDateAzizos'>NaN</span>
+		                    					</div>
+		                    					<div id='potentialRewardAzizos' style='margin-top: 12.5px; display: none;'>
+		                    						Potential Reward: <span id='potentialRewardNumAzizos'>0.000000000</span> ARSU <span id='azizPotPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 2; display:flex; align-items: center; justify-content: center; min-width:30px; max-width: 30px">
+			                    				<div class="dripicons-chevron-down" style="">
+			                    				</div>
+			                    			</div>
+			                    		</div>
+			                    		<div class="ethInputContainer" style="border-radius: 5px">
+			                    			<div style="flex-grow: 1; display: flex">
+			                    				<div style="flex-grow: 1">
+					                    			<div id='azizosLockAmount'>
+					                    				Lock Amount
+					                    			</div>
+					                    			<div id='azizosUpdateAmount' style='display: none'>
+					                    				Update Amount
+					                    			</div>
+					                    			<div>
+					                    				<input class="ethInput ethInputAzizos" id="ethInputAzizos" placeholder="0.000000000">
+				                    				</div>
+				                    			</div>
+				                    			<div style="flex-grow: 1">
+				                    				<div id='azizosLockUntil' style='display: block'>
+				                    					Lock Until
+				                    				</div>
+				                    				<div id='azizosUpdateUnlockDate' style="display: none">
+				                    					Update Unlock Date
+				                    				</div>
+				                    				<input class="dateInput dateInputAzizos" id="dateInputAzizos" placeholder="Choose Date">
+				                    			</div>
+			                    			</div>
+			                    			<div style="display: flex; align-items: center; justify-content: center">
+			                    				<button id="azizosLockButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 1em; border-radius: 5px">Lock</button>
+			                    				<button id="azizosUpdateButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 1em; border-radius: 5px; display: none">Update</button>
+			                    			</div>
+			                    			<br>
+			                    			<div>
+				                    			<input type="text" id="rangeAzizos" style="width: 100%" data-plugin="range-slider" data-grid="true" data-min="0" data-max="100" data-step="1" data-from="0" data-to="100" data-prettify_enabled="true">
+				                    		</div>
+			                    		</div>
+			                    		<div class="estimatedReward">
+			                    			Estimated Reward: <span class="estimatedRewardNumber">0.000000000</span> ARSU <span id='azizEstPct'></span>
+			                    		</div>
+		                    			<div class="unlockButtonContainer" style='display: flex; justify-content: center; align-items: center;'>
+		                    				<button id="azizosUnlockButton" class="btn btn-light btn-rounded" style="width: 200px; height: 45px; font-size: 1.5em; border-radius: 5px; margin-top: 10px; display: none;">Unlock</button>
+		                    			</div>
+	                    			</div>
+	                    		</div>
+	                    		<div class="card widget-flat" style="display: block">
+	                    			<div class="card-body card-arsu" data-closedheight='94px' data-openheight='307px'>
+	                    				<div style="display: flex"> 
+		                    				<div style="flex-grow: 5; max-width: 300px; min-width: 262px; margin-right: 10px">
+		                    					<h3>
+			                    					Arsu
+		                    					</h3>
+		                    					<div id='lockedLabelArsu' style='display: none;'>
+			                    					Locked: <span id="arsuLocked">0.000000000</span>
+		                    					</div>
+		                    					<div id='immediateRewardArsu' style='margin-top: 12.5px; display: none;'>
+		                    						Immediate Reward: <span id='immediateRewardNumArsu'>0.000000000</span> AZIZ <span id='arsuImmPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 5">
+		                    					<div class="unlockDateContainer">
+			                    					<div>
+				                    					Balance: <span id="arsuBalanceNum">0.000000000</span>
+			                    					</div>
+			                    				</div>
+		                    					<div id='unlockDateLabelArsu' style='display: none'>
+			                    					Unlock Date: <span id='unlockDateArsu'>NaN</span>
+		                    					</div>
+		                    					<div id='potentialRewardArsu' style='margin-top: 12.5px; display: none;'>
+		                    						Potential Reward: <span id='potentialRewardNumArsu'>0.000000000</span> AZIZ <span id='arsuPotPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 2; display:flex; align-items: center; justify-content: center; min-width:30px; max-width: 30px">
+			                    				<div class="dripicons-chevron-down" style="">
+			                    				</div>
+			                    			</div>
+			                    		</div>
+			                    		<div class="ethInputContainer" style="border-radius: 5px">
+			                    			<div style="flex-grow: 1; display: flex">
+			                    				<div style="flex-grow: 1">
+					                    			<div id='arsuLockAmount'>
+					                    				Lock Amount
+					                    			</div>
+					                    			<div id='arsuUpdateAmount' style='display: none'>
+					                    				Update Amount
+					                    			</div>
+					                    			<div>
+					                    				<input class="ethInput ethInputArsu" id="ethInputArsu" placeholder="0.000000000">
+				                    				</div>
+				                    			</div>
+				                    			<div style="flex-grow: 1">
+				                    				<div id='arsuLockUntil' style='display: block'>
+				                    					Lock Until
+				                    				</div>
+				                    				<div id='arsuUpdateUnlockDate' style="display: none">
+				                    					Update Unlock Date
+				                    				</div>
+				                    				<input class="dateInput dateInputArsu" id="dateInputArsu" placeholder="Choose Date">
+				                    			</div>
+			                    			</div>
+			                    			<div style="display: flex; align-items: center; justify-content: center">
+			                    				<button id="arsuLockButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 1em; border-radius: 5px">Lock</button>
+			                    				<button id="arsuUpdateButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 1em; border-radius: 5px; display: none">Update</button>
+			                    			</div>
+			                    			<br>
+			                    			<div>
+				                    			<input type="text" id="rangeArsu" style="width: 100%" data-plugin="range-slider" data-grid="true" data-min="0" data-max="100" data-step="1" data-from="0" data-to="100" data-prettify_enabled="true">
+				                    		</div>
+			                    		</div>
+			                    		<div class="estimatedReward">
+			                    			Estimated Reward: <span class="estimatedRewardNumber">0.000000000</span> AZIZ <span id='arsuEstPct'></span>
+			                    		</div>
+		                    			<div class="unlockButtonContainer" style='display: flex; justify-content: center; align-items: center;'>
+		                    				<button id="arsuUnlockButton" class="btn btn-light btn-rounded" style="width: 200px; height: 45px; font-size: 1.5em; border-radius: 5px; margin-top: 10px; display: none;">Unlock</button>
+		                    			</div>
+	                    			</div>
+	                    		</div>
+	                    		<div class="card widget-flat" style="display: block">
+	                    			<div class="card-body card-azizos-orbicular"  data-closedheight='94px' data-openheight='307px'>
+	                    				<div style="display: flex"> 
+		                    				<div style="flex-grow: 5; max-width: 300px; min-width: 262px; margin-right: 10px">
+		                    					<h3>
+			                    					Azizos:Orbicular
+		                    					</h3>
+		                    					<div id='lockedLabelAzizosOrbicular' style='display: none;'>
+			                    					Locked: <span id="azizosOrbicularLocked">0.000000000000000000</span>
+		                    					</div>
+		                    					<div id='immediateRewardAzizosOrbicular' style='margin-top: 12.5px; display: none;'>
+		                    						Immediate Reward: <span id='immediateRewardNumAzizosOrbicular'>0.000000000</span> ARSU <span id='azizOrbiImmPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 5">
+		                    					<div class="unlockDateContainer">
+			                    					<div>
+				                    					Balance: <span id="azizosOrbicularBalanceNum">0.000000000000000000</span>
+			                    					</div>
+			                    				</div>
+		                    					<div id='unlockDateLabelAzizosOrbicular' style='display: none'>
+			                    					Unlock Date: <span id='unlockDateAzizosOrbicular'>NaN</span>
+		                    					</div>
+		                    					<div id='potentialRewardAzizosOrbicular' style='margin-top: 12.5px; display: none;'>
+		                    						Potential Reward: <span id='potentialRewardNumAzizosOrbicular'>0.000000000</span> ARSU <span id='azizOrbiPotPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 2; display:flex; align-items: center; justify-content: center; min-width:30px; max-width: 30px">
+			                    				<div class="dripicons-chevron-down" style="">
+			                    				</div>
+			                    			</div>
+			                    		</div>
+			                    		<div class="ethInputContainer" style="border-radius: 5px">
+			                    			<div style="flex-grow: 1; display: flex">
+			                    				<div style="flex-grow: 1">
+					                    			<div id='azizosOrbicularLockAmount'>
+					                    				Lock Amount
+					                    			</div>
+					                    			<div id='azizosOrbicularUpdateAmount' style='display: none'>
+					                    				Update Amount
+					                    			</div>
+					                    			<div>
+					                    				<input class="ethInput ethInputAzizosOrbicular" id="ethInputAzizosOrbicular" placeholder="0.000000000000000000">
+				                    				</div>
+				                    			</div>
+				                    			<div style="flex-grow: 1">
+				                    				<div id='azizosOrbicularLockUntil' style='display: block'>
+				                    					Lock Until
+				                    				</div>
+				                    				<div id='azizosOrbicularUpdateUnlockDate' style="display: none">
+				                    					Update Unlock Date
+				                    				</div>
+				                    				<input class="dateInput dateInputAzizosOrbicular" id="dateInputAzizosOrbicular" placeholder="Choose Date">
+				                    			</div>
+			                    			</div>
+			                    			<div style="display: flex; align-items: center; justify-content: center">
+			                    				<button id="azizosOrbicularLockButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 0.9em; border-radius: 5px">Lock</button>
+			                    				<button id="azizosOrbicularUpdateButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 0.9em; border-radius: 5px; display: none">Update</button>
+			                    			</div>
+			                    			<br>
+			                    			<div>
+				                    			<input type="text" id="rangeAzizosOrbicular" style="width: 100%" data-plugin="range-slider" data-grid="true" data-min="0" data-max="100" data-step="1" data-from="0" data-to="100" data-prettify_enabled="true">
+				                    		</div>
+			                    		</div>
+			                    		<div class="estimatedReward">
+			                    			Estimated Reward: <span class="estimatedRewardNumber">0.000000000</span> ARSU <span id='azizOrbiEstPct'></span>
+			                    		</div>
+		                    			<div class="unlockButtonContainer" style='display: flex; justify-content: center; align-items: center;'>
+		                    				<button id="azizosOrbicularUnlockButton" class="btn btn-light btn-rounded" style="width: 200px; height: 45px; font-size: 1.5em; border-radius: 5px; margin-top: 10px; display: none;">Unlock</button>
+		                    			</div>
+	                    			</div>
+	                    		</div>
+	                    		<div class="card widget-flat" style="display: block">
+	                    			<div class="card-body card-arsu-orbicular" data-closedheight='94px' data-openheight='307px'>
+	                    				<div style="display: flex"> 
+		                    				<div style="flex-grow: 5; max-width: 300px; min-width: 262px; margin-right: 10px">
+		                    					<h3>
+			                    					Arsu:Orbicular
+		                    					</h3>
+		                    					<div id='lockedLabelArsuOrbicular' style='display: none;'>
+			                    					Locked: <span id="arsuOrbicularLocked">0.000000000000000000</span>
+		                    					</div>
+		                    					<div id='immediateRewardArsuOrbicular' style='margin-top: 12.5px; display: none;'>
+		                    						Immediate Reward: <span id='immediateRewardNumArsuOrbicular'>0.000000000</span> AZIZ <span id='arsuOrbiImmPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 5">
+		                    					<div class="unlockDateContainer">
+			                    					<div>
+				                    					Balance: <span id="arsuOrbicularBalanceNum">0.000000000000000000</span>
+			                    					</div>
+			                    				</div>
+		                    					<div id='unlockDateLabelArsuOrbicular' style='display: none'>
+			                    					Unlock Date: <span id='unlockDateArsuOrbicular'>NaN</span>
+		                    					</div>
+		                    					<div id='potentialRewardArsuOrbicular' style='margin-top: 12.5px; display: none;'>
+		                    						Potential Reward: <span id='potentialRewardNumArsuOrbicular'>0.000000000</span> AZIZ <span id='arsuOrbiPotPct'></span>
+		                    					</div>
+			                    			</div>
+		                    				<div style="flex-grow: 2; display:flex; align-items: center; justify-content: center; min-width:30px; max-width: 30px">
+			                    				<div class="dripicons-chevron-down" style="">
+			                    				</div>
+			                    			</div>
+			                    		</div>
+			                    		<div class="ethInputContainer" style="border-radius: 5px">
+			                    			<div style="flex-grow: 1; display: flex">
+			                    				<div style="flex-grow: 1">
+					                    			<div id='arsuOrbicularLockAmount'>
+					                    				Lock Amount
+					                    			</div>
+					                    			<div id='arsuOrbicularUpdateAmount' style='display: none'>
+					                    				Update Amount
+					                    			</div>
+					                    			<div>
+					                    				<input class="ethInput ethInputArsuOrbicular" id="ethInputArsuOrbicular" placeholder="0.000000000000000000">
+				                    				</div>
+				                    			</div>
+				                    			<div style="flex-grow: 1">
+				                    				<div id='arsuOrbicularLockUntil' style='display: block'>
+				                    					Lock Until
+				                    				</div>
+				                    				<div id='arsuOrbicularUpdateUnlockDate' style="display: none">
+				                    					Update Unlock Date
+				                    				</div>
+				                    				<input class="dateInput dateInputArsuOrbicular" id="dateInputArsuOrbicular" placeholder="Choose Date">
+				                    			</div>
+			                    			</div>
+			                    			<div style="display: flex; align-items: center; justify-content: center">
+			                    				<button id="arsuOrbicularLockButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 0.9em; border-radius: 5px">Lock</button>
+			                    				<button id="arsuOrbicularUpdateButton" class="btn btn-light btn-rounded" style="height: 45px; font-size: 0.9em; border-radius: 5px; display: none">Update</button>
+			                    			</div>
+			                    			<br>
+			                    			<div>
+				                    			<input type="text" id="rangeArsuOrbicular" style="width: 100%" data-plugin="range-slider" data-grid="true" data-min="0" data-max="100" data-step="1" data-from="0" data-to="100" data-prettify_enabled="true">
+				                    		</div>
+			                    		</div>
+			                    		<div class="estimatedReward">
+			                    			Estimated Reward: <span class="estimatedRewardNumber">0.000000000</span> AZIZ <span id='arsuOrbiEstPct'></span>
+			                    		</div>
+		                    			<div class="unlockButtonContainer" style='display: flex; justify-content: center; align-items: center;'>
+		                    				<button id="arsuOrbicularUnlockButton" class="btn btn-light btn-rounded" style="width: 200px; height: 45px; font-size: 1.5em; border-radius: 5px; margin-top: 10px; display: none;">Unlock</button>
+		                    			</div>
+	                    			</div>
+	                    		</div>
+	                    	</div>
+	                    </div>
+
+                    </div>
+                    <!-- container -->
+
+                </div>
+                <!-- content -->
+
+            </div>
+
+            <!-- Footer Start -->
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <div class="footer-links">
+                                <a href="https://twitter.com/CryptoOrbicular">Twitter</a>
+                                <a href="http://t.me/OfficialOrbicular">Telegram</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            <!-- end Footer -->
+
+            <!-- ============================================================== -->
+            <!-- End Page content -->
+            <!-- ============================================================== -->
+
+
+        </div>
+        <!-- END wrapper -->
+        
+
+    </body>
+    <script src="https://unpkg.com/@metamask/legacy-web3@latest/dist/metamask.web3.min.js"></script>
+	<script src="../js/vendor.min.js"></script>
+    <script src="../js/app.min.js"></script>
+    <script src="../js/ion.rangeSlider.min.js"></script>
+    <script src="../js/component.range-slider.js"></script>
+    <script src="../js/stats.js"></script>
+</html>

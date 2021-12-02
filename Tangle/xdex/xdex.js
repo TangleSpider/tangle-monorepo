@@ -1,0 +1,322 @@
+let keccak256 = require("@ethersproject/keccak256").keccak256;
+let sigLong = selector => {
+    return keccak256(
+        "0x" +
+        selector.split('').map(c => {
+            return c.charCodeAt(0).toString(16);
+        }).join('')
+    );
+};
+let sig = selector => {
+    return keccak256(
+        "0x" +
+        selector.split('').map(c => {
+            return c.charCodeAt(0).toString(16);
+        }).join('')
+    ).substr(0, 10);
+};
+let xdex = require("server");
+let db = require("db");
+let ethers = require("ethers");
+let fs = require("fs");
+let chains = require("chains");
+
+let profitMargin = 4;
+let PaymentReceived = sigLong(
+    "PaymentReceived(uint256,uint256,uint256)"
+);
+let TokensTransferred = sigLong(
+    "TokensTransferred(uint256,uint256,uint256)"
+);
+
+let estimateAmounts = async body => {
+    let pair = keccak256(
+        body.chains[0] +
+        body.tokens[0].substr(2) +
+        body.chains[1].substr(2) +
+        body.tokens[1].substr(2)
+    );
+    let row = await new Promise((resolve, reject) => {
+        db.get(
+            `select reserve0, reserve1
+            from pairs
+            where pair = "${pair}"`,
+            (err, row) => { resolve(row) }
+        );
+    });
+    if (!row) {
+        return [body.amountsDesired[0], body.amountsDesired[1]];
+    } else {
+        let [reserve0, reserve1] = [row.reserve0, row.reserve1];
+        let amount1Optimal = BigInt(body.amountsDesired[0]) *
+            BigInt(reserve1) / BigInt(reserve0);
+        if (amount1Optimal <= body.amountsDesired[1]) {
+            return [body.amountsDesired[0], amount1Optimal];
+        } else {
+            let amount0Optimal = BigInt(body.amountsDesired[1]) *
+                BigInt(reserve0) / BigInt(reserve1);
+            return [amount0Optimal, body.amountsDesired[1]];
+        }
+    }
+};
+let estimateGases = async body => {
+    return await Promise.all([0, 1].map(async i => { try {
+        let chainData = chains[body.chains[i]];
+        if (!chainData) {
+            body.res.write(JSON.stringify({ error:
+                `unknown chain ${body.chains[i]}`
+            }));
+            throw JSON.stringify({ error:
+                `unknown chain ${body.chains[i]}`
+            });
+        }
+        if (!chainData.TangleRelayerContract) {
+            body.res.write(JSON.stringify({ error:
+                `missing TangleRelayerContract for chain ${chainData.name}`
+            }));
+            throw JSON.stringify({ error:
+                `missing TangleRelayerContract for chain ${chainData.name}`
+            });
+        }
+        if (!chainData.TangleRelayer) {
+            body.res.write(JSON.stringify({ error:
+                `missing TangleRelayer for chain ${chainData.name}`
+            }));
+            throw JSON.stringify({ error:
+                `missing TangleRelayer for chain ${chainData.name}`
+            });
+        }
+        let TangleRelayerContract = chainData.TangleRelayerContract;
+        let TangleRelayer = chainData.TangleRelayer;
+        let data = "";
+        data += sig(
+            `transferFrom(address,address,address,uint256,uint256,uint256)`
+        );
+        data += body.tokens[i].substr(2).padStart(64, '0');
+        data += body.msgSender.substr(2).padStart(64, '0');
+        data += TangleRelayerContract.substr(2).padStart(64, '0');
+        data += BigInt(body.amounts[i]).toString(16).padStart(64, '0');
+        data += '0'.padStart(64, '0');
+        data += body.id.toString(16).padStart(64, '0');
+        let provider = chainData.provider;
+        let tx = {
+            from: TangleRelayer,
+            to: TangleRelayerContract,
+            data: data
+        };
+        let response = new Promise(async (resolve, reject) => { try {
+            setTimeout(() => { resolve(null); }, 30000);
+            resolve(await provider.estimateGas(tx).catch(err => {
+                body.res.write(JSON.stringify({ error:
+                    `error estimating gas
+                    ${chainData.name},${body.tokens[i]},${body.msgSender}`
+                    .replace(/\s+/g, " ")
+                }));
+                throw JSON.stringify({ error:
+                    `error estimating gas
+                    ${chainData.name},${body.tokens[i]},${body.msgSender}`
+                    .replace(/\s+/g, " ")
+                });
+            }));
+        } catch (e) { console.log(e) }});
+        if (!response) {
+            body.res.write(JSON.stringify({ error:
+                `timeout connecting to network ${chainData.name}`
+            }));
+            throw JSON.stringify({ error:
+                `timeout connecting to network ${chainData.name}`
+            });
+        }
+        if (response.error) {
+            body.res.write(JSON.stringify({ error:
+                `error transferring token
+                ${body.tokens[i]}
+                from
+                ${body.msgSender}
+                on chain
+                ${body.chains[1]}`.replace(/\s+/g, " ")
+            }));
+            throw JSON.stringify({ error:
+                `error transferring token
+                ${body.tokens[i]}
+                from
+                ${body.msgSender}
+                on chain
+                ${body.chains[1]}`.replace(/\s+/g, " ")
+            });
+        }
+        return response;
+    } catch (e) { console.log(e); }}));
+};
+let getBalances = async body => {
+    return await Promise.all([0,1].map(async i => { try {
+        let chainData = chains[body.chains[i]];
+        let provider = chainData.provider;
+        let TangleRelayer = chainData.TangleRelayer;
+        let balance = await provider.getBalance(TangleRelayer);
+        return balance;
+    } catch (e) { console.log(e); }}));
+};
+let getGasPrices = async body => {
+    return await Promise.all([0,1].map(async i => { try {
+        let chainData = chains[body.chains[i]];
+        let provider = chainData.provider;
+        return await provider.getGasPrice();
+    } catch (e) { console.log(e); }}));
+};
+let addLiquidity = async body => {
+    console.log(`${body.method}${body.id} estimateAmounts`);
+    let amounts = await estimateAmounts(body).catch(e => {});
+    amounts = amounts.map(a => a.toString());
+    body.amounts = amounts;
+    console.log(`${body.method}${body.id} estimateGases`);
+    let gases = await estimateGases(body).catch(e => {});
+    if (!gases[0]) {
+        body.res.write(JSON.stringify({
+            error:
+                `error retrieving gas0 for chain ${body.chains[0]}`
+        }));
+        throw JSON.stringify({ error:
+            `error retrieving gas0 for chain ${body.chains[0]}`
+        });
+    }
+    if (!gases[1]) {
+        body.res.write(JSON.stringify({
+            error:
+                `error retrieving gas1 for chain ${body.chains[1]}`
+        }));
+        throw JSON.stringify({ error:
+            `error retrieving gas1 for chain ${body.chains[1]}`
+        });
+    }
+    gases = gases.map(a => a.toString());
+    console.log(`${body.method}${body.id} getBalances`);
+    let balances = await getBalances(body).catch(e => {});
+    balances = balances.map(a => a.toString());
+    console.log(`${body.method}${body.id} getGasPrices`);
+    let gasPrices = await getGasPrices(body).catch(e => {});
+    gasPrices = gasPrices.map(a => a.toString());
+    let ratios = [0, 1].map(i =>
+        (BigInt(balances[i]) /
+        BigInt(gases[i]) /
+        BigInt(gasPrices[i])).toString()
+    );
+    let minBalanceToGasCostRatio = ratios.reduce((c, p) => {
+        return c < p ? c : p;
+    });
+    let indexOfMinRatio = ratios.indexOf(minBalanceToGasCostRatio);
+    let p = (profitMargin + 1);
+    let paymentAmount = (BigInt(gases[indexOfMinRatio]) *
+        BigInt(gasPrices[indexOfMinRatio]) *
+        BigInt(p)).toString();
+    console.log(`${body.method}${body.id} insert AddLiquidityRequest`);
+    db.run(
+        `insert into
+        addLiquidityRequests
+        (msgSender, payAmount, payChain, gas0, gas1, gasPrice0, gasPrice1,
+        chain0, chain1, token0, token1, amount0, amount1, timestamp)
+        values("${body.msgSender}", "${paymentAmount}",
+        "${body.chains[indexOfMinRatio]}", "${gases[0]}", "${gases[1]}",
+        "${gasPrices[0]}", "${gasPrices[1]}", "${body.chains[0]}",
+        "${body.chains[1]}", "${body.tokens[0]}", "${body.tokens[1]}",
+        "${amounts[0]}", "${amounts[1]}", "${Date.now()}")`
+    );
+    console.log(`${body.method}${body.id} responding`);
+    body.res.writeHead(200, { "Content-Type": "application/json" });
+    body.res.write(JSON.stringify({
+        id: body.id,
+        chain: body.chains[indexOfMinRatio],
+        amount: paymentAmount,
+        tangleRelayerContract: chains[body.chains[0]].TangleRelayerContract
+    }));
+    body.res.end();
+};
+
+let xdexRequest = {
+    idRequests: [],
+    processing: false,
+    process: function(body) {
+        if (!this.processing) {
+            console.log("starting process");
+            this.processing = true;
+        }
+        console.log(`acquiring ${body.method} id`);
+        db.serialize(async () => {
+            db.run(
+                `insert or ignore into
+                ids
+                (name, count)
+                values ("${body.method}", 0)`
+            );
+            body.id = await new Promise((resolve, reject) => {
+                db.get(
+                    `select count
+                    from ids
+                    where name = "${body.method}"`,
+                    (err, row) => { resolve(row.count); }
+                );
+            });
+            db.run(
+                `insert or replace into
+                ids
+                (name, count)
+                values ("${body.method}", ${body.id + 1})`,
+                () => {
+                    addLiquidity(body).catch(e => console.log(e));
+                    this.idRequests.shift();
+                    if (!this.idRequests.length) {
+                        console.log("stopping process");
+                        this.processing = false;
+                    }
+                    if (this.idRequests.length)
+                        this.process(this.idRequests[0]);
+                }
+            );
+        });
+    }
+};
+xdex.on("xdexRequest", body => {
+    let { idRequests, processing } = xdexRequest;
+    console.log(`adding ${body.method} request`);
+    idRequests.push(body);
+    if (!processing) xdexRequest.process(idRequests[0]);
+});
+/*Object.values(chains).forEach(async chain => {
+    try {
+        if (chain.name == "P14") {
+            let filter = chain.filters.paymentReceived;
+            filter.fromBlock = await new Promise((resolve, reject) => {
+                db.get(
+                    `select fromBlock
+                    from events
+                    where name = "PaymentReceived"`,
+                    (err, row) => { resolve(parseInt(row.fromBlock)) }
+                );
+            });
+            if (chain.filterChunkSize == 0) {
+                filter.toBlock = "latest";
+            } else {
+                filter.toBlock = await new Promise((resolve, reject) => {
+                    db.get(
+                        `select toBlock
+                        from events
+                        where name = "PaymentReceived"`,
+                        (err, row) => { resolve(parseInt(row.toBlock)) }
+                    );
+                });
+            }
+            console.log("getting logs");
+            let logs = await new Promise(async (resolve, reject) => {
+                setTimeout(() => { resolve(null); }, 5000);
+                resolve(await chain.provider.getLogs(filter));
+            });
+            if (!logs)
+                throw JSON.stringify({ error:
+                    `timeout connecting to network ${chain.name}`
+                });
+
+        }
+    } catch (e) { console.log(e) }
+});*/
+
+module.exports = {};

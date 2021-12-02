@@ -1,0 +1,71 @@
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet">
+<link rel='stylesheet' href='../../css/orbetStylesheetV3.css'>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-69C4DV1HWK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-69C4DV1HWK');
+</script>
+<body>
+	<div id="mask">
+	</div>
+	<div id="txHistoryMenuContainer" class="menuContainer">
+		<div id="txHistoryMenu" class="menu">
+			<div class="menuHeader">
+				Transaction History
+			</div>
+			<div id="txHistoryMenuBody" class="menuBody">
+				<div id="txHistoryMenuBodyContainer" class="menuBodyContainer">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="mobileNav">
+		<img id="mobileNavExit" src="../../images/iconfinder_Close_4781838.png">
+		<div class="mobileNavOption"><a href="https://orbi-dev.medium.com/" target="_blank">Medium</a></div>
+		<div class="mobileNavOption"><a href="https://t.me/OfficialOrbicular" target="_blank">Telegram</a></div>
+		<div class="mobileNavOption"><a href="https://twitter.com/CryptoOrbicular" target="_blank">Twitter</a></div>
+		<div class="mobileNavOption"><a href="https://app.uniswap.org/#/swap?inputCurrency=ETH&outputCurrency=0x2de27d3432d3188b53b02137e07b47896d347d45" target="_blank">Buy ORBIv2</a></div>
+		<div class="mobileNavOption"><a href="https://orbicular.io/staking" target="_blank">Staking</a></div>
+	</div>
+	<div id="navbar">
+		<div id="navbarLogoContainer">
+			<a href="https://orbicular.io" style="">
+				<img id="navbarLogo" src="../../images/orbiNavLogo.png">
+			</a>
+		</div>
+		<div id="navbarContainer">
+			<a href="https://orbi-dev.medium.com/" target="_blank" class="navbarOption">Medium</a>
+			<a href="https://t.me/OfficialOrbicular" target="_blank" class="navbarOption">Telegram</a>
+			<a href="https://twitter.com/CryptoOrbicular" target="_blank" class="navbarOption">Twitter</a>
+			<a href="https://app.uniswap.org/#/swap?inputCurrency=ETH&outputCurrency=0x2de27d3432d3188b53b02137e07b47896d347d45" target="_blank" class="navbarOption">Buy ORBIv2</a>
+			<a href="https://orbicular.io/staking" target="_blank" class="navbarOption">Staking</a>
+		</div>
+		<div id="hamburgerMenu">
+			<div id="hamburgerTop"></div>
+			<div id="hamburgerMiddle"></div>
+			<div id="hamburgerBottom"></div>
+		</div>
+	</div>
+	<img id="giantOrbi" src="../../images/orbiV2Logo1280.png" style="opacity: 0.1;z-index:-1;">
+	<div id="redeemContainer">
+		<div id="redeemHeader">Redeem ORBIv2</div>
+		<input id="redeemInput" placeholder="0x123ABC...">
+		<div id="redeemRealtimeFeedback">Please enter a valid address</div>
+		<div id="redeemButtonContainer">
+			<button id="redeemButton" style="width:400px">Connect Metamask Plugin Wallet</button>
+		</div>
+		<button id="redeemButton2" style="width:400px">Connect With ConnectWallet</button>
+	</div>
+	<div id="footerBar" style="height:auto;background-color:#222222;padding:5px">
+		<button id="txHistoryButton" style="width:450px">0 Pending</button>
+	</div>
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/orbicularHomeV3.js"></script>
+	<script src="../js/ethjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/merkletreejs@latest/merkletree.js"></script>
+	<script src="../js/bundle.js"></script>
+</body>

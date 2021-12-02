@@ -1,0 +1,13 @@
+AVAX-TNGL       0xd17584633bc8d190e5a14502976dad9640456d6d
+        Info                0xa943F863fA69ff4F6D9022843Fb861BBEe45B2ce
+        Balances            0xc4bB29EF01388886038188E37F6F2Fe03ddD29d0
+        Allowances          0x0669F4915c552fC5E34FEBdeAa12aC856fcE09b5
+        MappingIDs          0x3afb1AA98C5Deaa3272d0E78f05f05E9572B8B30
+        Approver            0x8Ada5721696335239aA4706229f2F3a040Ea744c
+        Transferrer         0x21ce0A31A7986a73f66D37672fF53a8b3289A0C2
+        PreTransformer      0x079212A89d35D2BF2e48860ff9cEbf5E740883C4
+        TaxMan              0xbe187f239Ea703c8F71c4b02139b697f22a1a890
+        PostTransferHooks   0x124c65Ab99Ad5F0B337D8D8f1831693aaF8EfEEC
+        Reflector           0x84e450F230343506623DB729592e5b754706a6ED
+AVAX-TNGL:AVAX  0xa02f0Bf793ff232fE0A7511C900494E99F0F674d
+    https://cchain.explorer.avax.network/address/0xa02f0Bf793ff232fE0A7511C900494E99F0F674d/tokens

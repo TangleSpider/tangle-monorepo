@@ -1,0 +1,9 @@
+WARN [11-29|13:31:45.799] Failed to load snapshot, regenerating    err="missing or corrupted snapshot"
+WARN [11-29|13:31:45.800] Error reading unclean shutdown markers   error="leveldb: not found"
+inittransfer:[REDACTED]32
+deploytrc:[REDACTED]dd
+deployweth:[REDACTED]3b
+trcaddress:0xfddd75ea23a59f15908c3874051eebf09110c3eb
+wethaddress:0xc23324e55c9761b888675f8a371fe01f2c61cf9d
+approvetrc:[REDACTED]75
+WARN [12-01|16:12:29.867] Served eth_estimateGas                   conn=127.0.0.1:37242 reqid=44 t=1.932378ms err="execution reverted"

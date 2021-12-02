@@ -1,0 +1,8 @@
+WARN [11-29|13:31:45.697] Failed to load snapshot, regenerating    err="missing or corrupted snapshot"
+WARN [11-29|13:31:45.698] Error reading unclean shutdown markers   error="leveldb: not found"
+inittransfer:[REDACTED]07
+deploytrc:[REDACTED]1b
+deployweth:[REDACTED]c6
+trcaddress:0x7d0378ba08fa3dc6af1794a376910fdea1c893e3
+wethaddress:0x82e1ad1800174a74ab4ec150bba220fa25f32a18
+approvetrc:[REDACTED]7a
