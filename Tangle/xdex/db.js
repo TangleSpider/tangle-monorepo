@@ -1,5 +1,6 @@
 let sqlite3 = require("sqlite3");
 let db = new sqlite3.Database("XDEX.db");
+let chains = require("chains");
 
 let hexZeroes = bytes => {
     return "0x" + "".padStart(bytes * 2, '0')
@@ -48,7 +49,8 @@ let tables = [
     {
         name: "events",
         def:
-            `name text unique,
+            `name text,
+            chain text,
             fromBlock text,
             toBlock text`,
         reset: true
@@ -59,11 +61,13 @@ for (let table of tables) {
         if (table.reset) db.run(`drop table if exists ${table.name}`);
         db.run(`create table if not exists ${table.name} (${table.def})`);
         if (table.reset && table.name == "events") {
-            db.run(
-                `insert into events
-                (name, fromBlock, toBlock)
-                values("PaymentReceived", "0", "0")`
-            );
+            Object.values(chains).forEach(chain => {
+                db.run(
+                    `insert into events
+                    (name, chain, fromBlock, toBlock)
+                    values("PaymentReceived", "${chain.name}", "0", "0")`
+                );
+            });
         }
     });
 };
