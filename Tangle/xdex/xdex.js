@@ -281,42 +281,118 @@ xdex.on("xdexRequest", body => {
     idRequests.push(body);
     if (!processing) xdexRequest.process(idRequests[0]);
 });
-/*Object.values(chains).forEach(async chain => {
-    try {
-        if (chain.name == "P14") {
-            let filter = chain.filters.paymentReceived;
-            filter.fromBlock = await new Promise((resolve, reject) => {
-                db.get(
-                    `select fromBlock
-                    from events
-                    where name = "PaymentReceived"`,
-                    (err, row) => { resolve(parseInt(row.fromBlock)) }
-                );
-            });
-            if (chain.filterChunkSize == 0) {
-                filter.toBlock = "latest";
-            } else {
-                filter.toBlock = await new Promise((resolve, reject) => {
-                    db.get(
-                        `select toBlock
-                        from events
-                        where name = "PaymentReceived"`,
-                        (err, row) => { resolve(parseInt(row.toBlock)) }
-                    );
-                });
+let updateAddLiquidityRequest = async (id, chain, value) => {
+    let value = BigInt(value);
+    let paidAmount = BigInt(await new Promise((resolve, reject) => {
+        db.get(
+            `select paidAmount
+            from addLiquidityRequests
+            where id = "${id}"`,
+            (err, row) => { resolve(parseInt(row.paidAmount)); }
+        );
+    }));
+    await new Promise((resolve, reject) => {
+        db.run(
+            `update addLiquidityRequests
+            set paidAmount = "${(value + paidAmount).toString()}"
+            where id = "${id}" and
+            payChain = "${chain.name}"`,
+            err => { resolve(null); }
+        );
+    });
+};
+chains = Object.values(chains);
+let startPollingWithDelay = async (chain, i) => {
+    let { name } = chain;
+    let updateFromToBlocks = (newFrom, newTo) => {
+        return new Promise((resolve, reject) => {
+            db.run(
+                `update events
+                set toBlock = "${newTo}",fromBlock="${newFrom}"
+                where name = "PaymentReceived" and
+                chain = "${chain.name}"`,
+                err => { resolve(null); }
+            );
+        });
+    };
+    let handleLogs = logs => {
+        logs.forEach(async log => {
+            let [ id, method, value ] = log
+                .data
+                .substr(2)
+                .match(/.{64}/g)
+                .map(e => BigInt("0x" + e).toString());
+            console.log(
+                id, method, value
+            );
+            switch (method) {
+                case 0:
+                    updateAddLiquidityRequest(id, chain, value);
+                    break;
             }
-            console.log("getting logs");
-            let logs = await new Promise(async (resolve, reject) => {
-                setTimeout(() => { resolve(null); }, 5000);
-                resolve(await chain.provider.getLogs(filter));
-            });
-            if (!logs)
-                throw JSON.stringify({ error:
-                    `timeout connecting to network ${chain.name}`
-                });
-
+        });
+    };
+    let getFromBlock = () => {
+        return new Promise((resolve, reject) => {
+            db.get(
+                `select fromBlock
+                from events
+                where name = "PaymentReceived" and
+                chain = "${chain.name}"`,
+                (err, row) => { resolve(parseInt(row.fromBlock)); }
+            );
+        });
+    };
+    let getToBlock = () => {
+        return new Promise((resolve, reject) => {
+            db.get(
+                `select toBlock
+                from events
+                where name = "PaymentReceived" and
+                chain = "${chain.name}"`,
+                (err, row) => { resolve(parseInt(row.toBlock)); }
+            );
+        });
+    };
+    let poll = () => { setInterval(async() => { try { if (name == "P14") {
+        let filter = chain.filters.paymentReceived;
+        filter.fromBlock = await getFromBlock();
+        chain.filterChunkSize ? filter.toBlock = await getToBlock() :
+            filter.toBlock = "latest";
+        /*if (chain.filterChunkSize == 0) {
+            filter.toBlock = "latest";
+        } else {
+            filter.toBlock = await getToBlock();
+        }*/
+        let latest = await chain.provider.getBlockNumber();
+        if (!filter.toBlock) {
+            filter.toBlock = filter.fromBlock + chain.filterChunkSize - 1;
+            if (filter.toBlock > latest) filter.toBlock = latest;
         }
-    } catch (e) { console.log(e) }
-});*/
+        console.log(
+            "fromto",
+            filter.fromBlock,
+            filter.toBlock,
+            chain.name
+        );
+        let logs = await new Promise(async (resolve, reject) => {
+            setTimeout(() => { resolve(null); }, 5000);
+            resolve(await chain.provider.getLogs(filter));
+        });
+        if (!logs)
+            throw JSON.stringify({ error:
+                `timeout connecting to network ${chain.name}`
+            });
+        if (logs.length) handleLogs(logs);
+        //if (!logs.length) {}
+        let newFrom = filter.toBlock + 1;
+        if (newFrom > latest) newFrom = latest;
+        let newTo = newFrom + chain.filterChunkSize - 1;
+        if (newTo > latest) newTo = latest;
+        await updateFromToBlocks(newFrom, newTo);
+    } } catch (e) { console.log(e); } }, 1000); };
+    setTimeout(poll, parseInt(1000 / chains.length) * i);
+};
+chains.forEach(async (chain, i) => { startPollingWithDelay(chain, i); });
 
 module.exports = {};
