@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sed -rn "s/.*0x([[:alnum:]]+).*/\1/p" <<< $( \
+    geth \
+        --verbosity 2 \
+        account new \
+        --password password \
+        --datadir $1/data \
+    )

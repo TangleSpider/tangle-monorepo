@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pid=$( \
+    ss -lpH "sport = $1" | \
+    sed -rn "s/.*pid=([[:digit:]]+).*/\1/p" \
+)
+if [ ${pid} ]; then kill ${pid}; fi

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+geth \
+    --verbosity 2 \
+    --port 303$1 \
+    --http \
+    --http.addr 0.0.0.0 \
+    --http.port "80$1" \
+    --http.corsdomain "*" \
+    --datadir $1/data \
+    --http.api "net,web3,eth,personal" \
+    --mine \
+    --miner.threads 1 \
+    --miner.etherbase 0x$2 \
+    --unlock 0x$2\
+    --password password \
+    --allow-insecure-unlock \
+    --networkid $1 \
+    --netrestrict 127.0.0.1/32,192.168.0.0/24 \
+    2>> $1/logs & disown

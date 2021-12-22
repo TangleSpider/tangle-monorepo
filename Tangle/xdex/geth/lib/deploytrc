@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "$(
+    geth \
+        --verbosity 2 \
+        attach http://127.0.0.1:80$1 \
+        --exec \
+            "web3.personal.unlockAccount(
+                web3.personal.listAccounts[0],
+                \"password\",
+                5
+            );
+            eth.sendTransaction({
+                from: eth.accounts[0],
+                data: \"$(cat lib/trcbytecode)\"
+            });" \
+)" | sed "s/\"//g"

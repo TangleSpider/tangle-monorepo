@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "inittransfer:$(
+    geth \
+        --verbosity 2 \
+        attach http://127.0.0.1:80$1 \
+        --exec \
+            'web3.personal.unlockAccount(
+                web3.personal.listAccounts[0],
+                "password",
+                5
+            );
+            eth.sendTransaction({
+                from: eth.accounts[0],
+                to: "0x9De2b19dEaDBeeFB821D00c39289919DD5313566",
+                value: 1000000000000000000
+            });' \
+)" | sed "s/\"//g" >> $1/logs

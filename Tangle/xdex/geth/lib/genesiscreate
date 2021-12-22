@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cat genesis.json | \
+    sed "s/ADDRESS/$2/g" | \
+    sed "s/CHAIN/$1/" > \
+    $1/genesis.json

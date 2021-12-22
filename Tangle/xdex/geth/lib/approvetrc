@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "$(
+    geth \
+        --verbosity 5 \
+        attach http://127.0.0.1:80$1 \
+        --exec \
+            "web3.personal.unlockAccount(
+                web3.personal.listAccounts[1],
+                \"password\",
+                5
+            );
+            web3.eth.defaultAccount = eth.accounts[1];
+            eth.sendTransaction({
+                from: eth.accounts[1],
+                to: \"$(lib/getwethaddress $1)\",
+                data: \"$( \
+                    cat lib/approvedata | \
+                    sed "s/ADDRESS/$( \
+                        lib/gettrcaddress $1 | \
+                        sed "s/0x\(.\+\)/\1/" \
+                    )/" \
+                )\"
+            });" \
+)" | sed "s/\"//g"

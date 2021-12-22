@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "$(
+    geth \
+        --verbosity 2 \
+        attach http://127.0.0.1:80$1 \
+        --exec \
+            "eth.getTransactionReceipt(
+                \"$( \
+                    cat $1/logs | \
+                    sed -rn "s/deploytrc:([[:alnum:]])/\1/p" \
+                )\"
+            );" \
+)" | sed -r "s/(\\s+)([[:alnum:]]+)/\1\"\2\"/g" | \
+    jq ".contractAddress" | \
+    sed -rn "s/\"?//gp"

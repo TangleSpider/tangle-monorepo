@@ -1,0 +1,6 @@
+#!/bin/bash
+
+geth \
+    --verbosity 2 \
+    init $1/genesis.json \
+    --datadir $1/data

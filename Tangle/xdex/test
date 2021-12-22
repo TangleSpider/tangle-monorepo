@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 let xdex = require("xdex");
 let http = require("http");
 let fs = require("fs");
@@ -6,7 +8,7 @@ let { Wallet } = ethers;
 let chains = require("chains");
 let abis = require("abis");
 
-let env = JSON.parse(fs.readFileSync(".env", "utf8"));
+let env = JSON.parse(fs.readFileSync("/code/XDEX/.env", "utf8"));
 let options = {
     host: "127.0.0.1",
     port: "8000",
@@ -34,6 +36,10 @@ let ping = () => {
         req.end();
     });
 };
+let logs14 = fs.readFileSync("/code/XDEX/geth/14/logs", "utf8");
+let logs15 = fs.readFileSync("/code/XDEX/geth/15/logs", "utf8");
+let weth14 = logs14.match(/wethaddress:([\d\w]+)/)[1];
+let weth15 = logs15.match(/wethaddress:([\d\w]+)/)[1];
 let xdexRequest = () => {
     return new Promise((resolve, reject) => {
         let req = http.request(options, res => {
@@ -46,8 +52,7 @@ let xdexRequest = () => {
                 resolve(data)
             });
         });
-        let logs14 = fs.readFileSync("geth/14/logs", "utf8");
-        let logs15 = fs.readFileSync("geth/15/logs", "utf8");
+
         req.write(JSON.stringify({
             method: "addLiquidity",
             chains: [
@@ -55,8 +60,8 @@ let xdexRequest = () => {
                 "0x" + "f".padStart(64, '0')
             ],
             tokens: [
-                logs14.match(/wethaddress:([\d\w]+)/)[1],
-                logs15.match(/wethaddress:([\d\w]+)/)[1]
+                weth14,
+                weth15
             ],
             amountsDesired: [
                 "1000000000",
@@ -68,13 +73,7 @@ let xdexRequest = () => {
     });
 }
 (async () => {
-
-    // LOOP TRY GET WETH ADDRESS
-    // LOOP TRY GET WETH,PAYER,XDEX APPROVAL > 0
-    // LOOP TRY GET WETH,PAYER BALANCE > 0
-    // DO REST
-
-    /*let response = JSON.parse(await xdexRequest());
+    let response = JSON.parse(await xdexRequest());
     console.log(response);
     let { chain, amount, id } = response;
     let payer = new Wallet(env.keys.payer, chains[chain].provider);
@@ -91,5 +90,5 @@ let xdexRequest = () => {
         id,
         overrides
     );
-    console.log("TX", tx);*/
+    console.log("TX", tx);
 })();

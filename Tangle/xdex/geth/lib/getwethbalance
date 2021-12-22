@@ -1,0 +1,17 @@
+#!/bin/bash
+
+curl -s -X POST --data \
+	"{
+		\"jsonrpc\": \"2.0\",
+		\"method\": \"eth_call\",
+		\"params\": [
+			{
+				\"to\": \"$(lib/getwethaddress $1)\",
+				\"data\": \"0x70a082310000000000000000000000009De2b19dEaDBeeFB821D00c39289919DD5313566\"
+			},
+			\"latest\"
+		],
+		\"id\":0
+	}" http://192.168.0.3:80$1 -H "Content-Type: application/json" | \
+    jq .result | \
+    tr -d '"'

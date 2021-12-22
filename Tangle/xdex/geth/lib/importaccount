@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sed "s/\"//g" <<< \
+    $(cat ../.env | jq ".keys.payer") | \
+    geth \
+        --verbosity 2 \
+        account import /dev/stdin \
+        --password password \
+        --datadir $1/data > /dev/null

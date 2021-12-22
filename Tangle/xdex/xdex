@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 let keccak256 = require("@ethersproject/keccak256").keccak256;
 let sigLong = selector => {
     return keccak256(
@@ -107,15 +109,40 @@ let estimateGases = async body => {
         let response = new Promise(async (resolve, reject) => { try {
             setTimeout(() => { resolve(null); }, 30000);
             resolve(await provider.estimateGas(tx).catch(err => {
+                //console.log("ERROR!", err);
                 body.res.write(JSON.stringify({ error:
                     `error estimating gas
-                    ${chainData.name},${body.tokens[i]},${body.msgSender}`
-                    .replace(/\s+/g, " ")
+                        [
+                            ${chainData.name},
+                            ${TangleRelayer},
+                            ${TangleRelayerContract}
+                        ],
+                        [
+                            ${body.tokens[i]},
+                            ${body.msgSender},
+                            ${TangleRelayerContract},
+                            ${BigInt(body.amounts[i])},
+                            0,
+                            ${body.id}
+                        ]
+                    `.replace(/\s+/g, " ")
                 }));
                 throw JSON.stringify({ error:
                     `error estimating gas
-                    ${chainData.name},${body.tokens[i]},${body.msgSender}`
-                    .replace(/\s+/g, " ")
+                        [
+                            ${chainData.name},
+                            ${TangleRelayer},
+                            ${TangleRelayerContract}
+                        ],
+                        [
+                            ${body.tokens[i]},
+                            ${body.msgSender},
+                            ${TangleRelayerContract},
+                            ${BigInt(body.amounts[i])},
+                            0,
+                            ${body.id}
+                        ]
+                    `.replace(/\s+/g, " ")
                 });
             }));
         } catch (e) { console.log(e) }});
@@ -282,15 +309,22 @@ xdex.on("xdexRequest", body => {
     if (!processing) xdexRequest.process(idRequests[0]);
 });
 let updateAddLiquidityRequest = async (id, chain, value) => {
-    let value = BigInt(value);
-    let paidAmount = BigInt(await new Promise((resolve, reject) => {
-        db.get(
-            `select paidAmount
-            from addLiquidityRequests
-            where id = "${id}"`,
-            (err, row) => { resolve(parseInt(row.paidAmount)); }
-        );
-    }));
+    value = BigInt(value);
+    let [ paidAmount, payAmount ] = BigInt(
+        await new Promise((resolve, reject) => {
+            db.get(
+                `select paidAmount, payAmount
+                from addLiquidityRequests
+                where id = "${id}"`,
+                (err, row) => {
+                    resolve([
+                        parseInt(row.paidAmount),
+                        parseInt(row.payAmount)
+                    ]);
+                }
+            );
+        }
+    ));
     await new Promise((resolve, reject) => {
         db.run(
             `update addLiquidityRequests
@@ -300,10 +334,13 @@ let updateAddLiquidityRequest = async (id, chain, value) => {
             err => { resolve(null); }
         );
     });
+    if (value + paidAmount >= payAmount) {
+        console.log("PAIDAMOUNT NOW GTE PAYAMOUNT");
+    }
 };
-chains = Object.values(chains);
 let startPollingWithDelay = async (chain, i) => {
     let { name } = chain;
+    if (name != "P14" && name != "P15") return;
     let updateFromToBlocks = (newFrom, newTo) => {
         return new Promise((resolve, reject) => {
             db.run(
@@ -359,11 +396,6 @@ let startPollingWithDelay = async (chain, i) => {
         filter.fromBlock = await getFromBlock();
         chain.filterChunkSize ? filter.toBlock = await getToBlock() :
             filter.toBlock = "latest";
-        /*if (chain.filterChunkSize == 0) {
-            filter.toBlock = "latest";
-        } else {
-            filter.toBlock = await getToBlock();
-        }*/
         let latest = await chain.provider.getBlockNumber();
         if (!filter.toBlock) {
             filter.toBlock = filter.fromBlock + chain.filterChunkSize - 1;
@@ -384,7 +416,6 @@ let startPollingWithDelay = async (chain, i) => {
                 `timeout connecting to network ${chain.name}`
             });
         if (logs.length) handleLogs(logs);
-        //if (!logs.length) {}
         let newFrom = filter.toBlock + 1;
         if (newFrom > latest) newFrom = latest;
         let newTo = newFrom + chain.filterChunkSize - 1;
@@ -393,6 +424,8 @@ let startPollingWithDelay = async (chain, i) => {
     } } catch (e) { console.log(e); } }, 1000); };
     setTimeout(poll, parseInt(1000 / chains.length) * i);
 };
-chains.forEach(async (chain, i) => { startPollingWithDelay(chain, i); });
+Object.values(chains).forEach(async (chain, i) => {
+    startPollingWithDelay(chain, i);
+});
 
 module.exports = {};

@@ -43,6 +43,14 @@ init() {
 	echo "depositing eth on chain ${chain}"
 	txhash=$(lib/depositeth ${chain})
 	echo "depositeth:${txhash}" >> $1/logs
+	echo "waiting for weth approved on chain ${chain}"
+	while [ $(($(lib/getwethapproved ${chain}))) -eq 0 ]
+		do sleep 0.1s
+	done
+	echo "waiting for weth balances on chain ${chain}"
+	while [ $(($(lib/getwethbalance ${chain}))) -eq 0 ]
+		do sleep 0.1s
+	done
 	echo "chain ${chain} ready"
 }
 
@@ -50,3 +58,5 @@ for i in {14..15}
 	do init ${i} &
 done
 wait
+
+../test
