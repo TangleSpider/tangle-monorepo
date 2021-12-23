@@ -240,13 +240,14 @@ let addLiquidity = async body => {
     db.run(
         `insert into
         addLiquidityRequests
-        (msgSender, payAmount, payChain, gas0, gas1, gasPrice0, gasPrice1,
-        chain0, chain1, token0, token1, amount0, amount1, timestamp)
-        values("${body.msgSender}", "${paymentAmount}",
+        (id, msgSender, payAmount, payChain, gas0, gas1, gasPrice0, gasPrice1,
+        chain0, chain1, token0, token1, amount0, amount1, timestamp,
+        paidAmount)
+        values("${body.id}", "${body.msgSender}", "${paymentAmount}",
         "${body.chains[indexOfMinRatio]}", "${gases[0]}", "${gases[1]}",
         "${gasPrices[0]}", "${gasPrices[1]}", "${body.chains[0]}",
         "${body.chains[1]}", "${body.tokens[0]}", "${body.tokens[1]}",
-        "${amounts[0]}", "${amounts[1]}", "${Date.now()}")`
+        "${amounts[0]}", "${amounts[1]}", "${Date.now()}", "0")`
     );
     console.log(`${body.method}${body.id} responding`);
     body.res.writeHead(200, { "Content-Type": "application/json" });
@@ -309,28 +310,42 @@ xdex.on("xdexRequest", body => {
     if (!processing) xdexRequest.process(idRequests[0]);
 });
 let updateAddLiquidityRequest = async (id, chain, value) => {
+    console.log(`addLiquidity${id} update`);
     value = BigInt(value);
-    let [ paidAmount, payAmount ] = BigInt(
-        await new Promise((resolve, reject) => {
-            db.get(
-                `select paidAmount, payAmount
-                from addLiquidityRequests
-                where id = "${id}"`,
-                (err, row) => {
-                    resolve([
-                        parseInt(row.paidAmount),
-                        parseInt(row.payAmount)
-                    ]);
-                }
-            );
-        }
-    ));
+    await new Promise((resolve, reject) => {
+        db.get(
+            `select paidAmount, payAmount, payChain, id
+            from addLiquidityRequests`,
+            (err, row) => {
+                if (err) console.log("ERR", err);
+                if (row) console.log("ROW", row);
+                resolve(null);
+            }
+        );
+    });
+    let [ paidAmount, payAmount ] = await new Promise((resolve, reject) => {
+        db.get(
+            `select paidAmount, payAmount
+            from addLiquidityRequests
+            where id = "${id}" and
+            payChain = "${chain.longId}"`,
+            (err, row) => {
+                if (err) console.log("ERR", err);
+                if (row) console.log("ROW", row);
+                resolve([
+                    BigInt(row.paidAmount),
+                    BigInt(row.payAmount)
+                ]);
+            }
+        );
+    });
+    console.log(`addLiquidity${id} update, paidAmount${paidAmount} payAmount${payAmount}`);
     await new Promise((resolve, reject) => {
         db.run(
             `update addLiquidityRequests
             set paidAmount = "${(value + paidAmount).toString()}"
             where id = "${id}" and
-            payChain = "${chain.name}"`,
+            payChain = "${chain.longId}"`,
             err => { resolve(null); }
         );
     });
@@ -363,7 +378,7 @@ let startPollingWithDelay = async (chain, i) => {
                 id, method, value
             );
             switch (method) {
-                case 0:
+                case '0':
                     updateAddLiquidityRequest(id, chain, value);
                     break;
             }
@@ -401,21 +416,24 @@ let startPollingWithDelay = async (chain, i) => {
             filter.toBlock = filter.fromBlock + chain.filterChunkSize - 1;
             if (filter.toBlock > latest) filter.toBlock = latest;
         }
-        console.log(
-            "fromto",
-            filter.fromBlock,
-            filter.toBlock,
-            chain.name
-        );
-        let logs = await new Promise(async (resolve, reject) => {
-            setTimeout(() => { resolve(null); }, 5000);
-            resolve(await chain.provider.getLogs(filter));
-        });
-        if (!logs)
-            throw JSON.stringify({ error:
-                `timeout connecting to network ${chain.name}`
+        if (!(chain.lastBlock && filter.toBlock == chain.lastBlock)) {
+            console.log(
+                "fromto",
+                filter.fromBlock,
+                filter.toBlock,
+                chain.name
+            );
+            let logs = await new Promise(async (resolve, reject) => {
+                setTimeout(() => { resolve(null); }, 5000);
+                resolve(await chain.provider.getLogs(filter));
             });
-        if (logs.length) handleLogs(logs);
+            if (!logs)
+                throw JSON.stringify({ error:
+                    `timeout connecting to network ${chain.name}`
+                });
+            if (logs.length) handleLogs(logs);
+        }
+        chain.lastBlock = filter.toBlock;
         let newFrom = filter.toBlock + 1;
         if (newFrom > latest) newFrom = latest;
         let newTo = newFrom + chain.filterChunkSize - 1;
