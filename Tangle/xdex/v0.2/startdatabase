@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+let sqlite3 = require("sqlite3");
+let tables = require("tables");
+
+module.exports = {
+    startDatabase: function() {
+        this.db = new sqlite3.Database("xdex.db");
+        for (let table of tables) {
+            this.db.serialize(() => {
+                if (table.reset)
+                    this.db.run(
+                        `drop table
+                        if exists
+                        ${table.name}`
+                    );
+                this.db.run(
+                    `create table
+                    if not exists
+                    ${table.name} (${table.def})`
+                );
+            });
+        };
+        this.dbStarted = true;
+        if (this.serverStarted && this.dbStarted)
+            this.on("req", require("isvalidreq"));
+    }
+};

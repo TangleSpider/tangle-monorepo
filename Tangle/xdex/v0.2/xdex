@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+class XDEX extends require("events") {
+    constructor() {
+        super()
+        this.serverStarted = false;
+        this.dbStarted = false;
+    }
+}
+Object.assign(XDEX.prototype, {
+    ...require("startserver"),
+    ...require("startdatabase"),
+    ...require("getid"),
+    //...require("estimateamounts"),
+    //...require("startchainlisten"),
+});
+
+let xdex = new XDEX();
+xdex.startServer();
+xdex.startDatabase();

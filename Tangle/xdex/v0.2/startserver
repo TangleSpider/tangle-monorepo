@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+let http = require("http");
+
+module.exports = {
+    startServer: function() {
+        this.server = http.createServer((req, res) => {
+            let buffer = Buffer.from("");
+            req.on("data", d =>
+                buffer = Buffer.concat([buffer, d])
+            );
+            req.on("end", () => {
+                this.emit("req", {
+                    data: buffer,
+                    res: res
+                });
+            });
+        });
+        this.server.listen(8000);
+        this.serverStarted = true;
+        if (this.serverStarted && this.dbStarted)
+            this.on("req", require("isvalidreq"));
+    }
+};

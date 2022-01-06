@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+module.exports = async function(req) {
+    let response = {};
+    response.id = this.getId();
+    /*let response = {};
+    response.id = ;
+    response.payInfo = this.getPayInfo(req);
+    await Promise.all(response.id, response.payInfo);
+    res.writeHead(
+        200,
+        { "Content-Type": "text/plain" }
+    );
+    res.write(JSON.stringify(response));
+    res.end();*/
+};
