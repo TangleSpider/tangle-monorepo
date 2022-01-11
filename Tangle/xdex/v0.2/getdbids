@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+module.exports = {
+    getDBIds: async function() {
+        this.ids = {
+            addLiquidity: null
+        };
+        await Promise.all(
+            Object.keys(this.ids).map(
+                id => new Promise((resolve, reject) => {
+                    this.db.serialize(async () => {
+                        this.db.run(
+                            `insert or ignore into ids
+                            (name, count) values
+                            ("${id}", 0)`
+                        );
+                        this.ids[id] = await new Promise(
+                            (resolve, reject) =>
+                                this.db.get(
+                                    `select count
+                                    from ids
+                                    where name = "${id}"`,
+                                    (err, row) =>
+                                        resolve(row.count)
+                                )
+                        );
+                        resolve(null);
+                    });
+                })
+            )
+        );
+        console.log(this.ids);
+        this.dbStarted = true;
+        if (
+            this.serverStarted &&
+            this.dbStarted
+        ) this.on("req", require("isvalidreq"));
+    }
+};
