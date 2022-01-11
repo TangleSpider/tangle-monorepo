@@ -1,8 +1,17 @@
 #!/usr/bin/env node
 
 module.exports = async function(req) {
-    let response = {};
-    response.id = this.getId();
+    let res = {};
+    await Promise.all([
+        this.getId(req, res)
+    ]);
+    console.log(res);
+    /*let [
+        response.id
+    ] = await Promise.all([
+        this.getId(req)
+    ]);
+    console.log(`response ${response}`);
     /*let response = {};
     response.id = ;
     response.payInfo = this.getPayInfo(req);

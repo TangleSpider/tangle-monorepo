@@ -1,7 +1,48 @@
 #!/usr/bin/env node
 
 module.exports = {
-    getId: function() {
-        console.log("GETTING ID");
+    getId: async function(req, res) {
+        if (!this.id) {
+            if (!this.gettingId) {
+                this.gettingId = true;
+                this.id = await new Promise(
+                    (resolve, reject) => {
+                        this.db.get(
+                            `select count
+                            from ids
+                            where name = "${req.method}"`,
+                            (err, row) => resolve(row.count)
+                        );
+                    }
+                );
+                this.gettingId = false;
+            } else {
+                let waitForId = async () => {
+                    await new Promise(
+                        (resolve, reject) => {
+                            setTimeout(() => {
+                                if (this.gettingId)
+                                    waitForId();
+                                if (!this.gettingId)
+                                    resolve(null);
+                            }, 100);
+                        }
+                    );
+                };
+                await waitForId();
+            }
+        }
+        res.id = this.id;
+        this.id++;
+        if (this.setIdTimeout)
+            clearTimeout(this.setIdTimeout);
+        this.setIdTimeout = setTimeout(async () => {
+            console.log(`updating id of ${req.method} to ${this.id}`);
+            this.db.run(
+                `update ids
+                set count = ${this.id}
+                where name = "${req.method}"`
+            );
+        }, 1000);
     }
 };

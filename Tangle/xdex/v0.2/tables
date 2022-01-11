@@ -10,7 +10,7 @@ module.exports = [
         def:
             `name text unique,
             count integer default 0`,
-        reset: true,
+        reset: false,
     },
     {
         name: "pairs",

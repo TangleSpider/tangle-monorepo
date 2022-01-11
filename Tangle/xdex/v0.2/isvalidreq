@@ -7,11 +7,13 @@ module.exports = function(req) {
         "removeLiquidity"
     ];
     try {
-        let method = JSON.parse(req.data).method;
-        if (validMethods.includes(method))
+        req.method = JSON.parse(req.data).method;
+        if (validMethods.includes(req.method))
             require("respond").bind(this)(req);
         return;
-    } catch (e) {}
+    } catch (e) {
+        console.log(`e ${e}`);
+    }
     let { res } = req;
     res.writeHead(
         200,

@@ -19,6 +19,18 @@ module.exports = {
                     if not exists
                     ${table.name} (${table.def})`
                 );
+                if (table.name == "ids") {
+                    let ids = [
+                        "addLiquidity"
+                    ];
+                    ids.forEach(id => {
+                        this.db.run(
+                            `insert or ignore into ids
+                            (name, count) values
+                            ("${id}", 0)`
+                        );
+                    });
+                }
             });
         };
         this.dbStarted = true;
