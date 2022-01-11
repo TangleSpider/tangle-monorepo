@@ -11,6 +11,7 @@ Object.assign(XDEX.prototype, {
     ...require("startserver"),
     ...require("startdatabase"),
     ...require("getid"),
+    ...require("getdbids"),
     //...require("estimateamounts"),
     //...require("startchainlisten"),
 });
