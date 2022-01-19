@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+let hexZeroes = bytes => {
+    return "0x" + "".padStart(bytes * 2, '0')
+};
+
+module.exports = [
+    {
+        name: "ids",
+        def:
+            `name text unique,
+            count integer default 0`,
+        reset: false,
+    },
+    {
+        name: "pairs",
+        def:
+            `pair text unique,
+            reserve0 text default "${hexZeroes(32)}",
+            reserve1 text default "${hexZeroes(32)}"`,
+        reset: true
+    },
+    {
+        name: "addLiquidityRequests",
+        def:
+            `id text unique,
+             msgSender text,
+             payAmount text,
+             payChain text,
+             gas0 text,
+             gas1 text,
+             gasPrice0 text,
+             gasPrice1 text,
+             chain0 text,
+             chain1 text,
+             token0 text,
+             token1 text,
+             amount0 text,
+             amount1 text,
+             timestamp text,
+             paidAmount text,
+             realAmount0 text,
+             realAmount1 text,
+             status0 text,
+             status1 text`,
+         reset: true
+    },
+    {
+        name: "events",
+        def:
+            `name text,
+            chain text,
+            fromBlock text,
+            toBlock text`,
+        reset: true
+    }
+];

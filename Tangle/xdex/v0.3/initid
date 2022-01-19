@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+module.exports = async function(id) {
+    this.ids[id] = await new Promise((resolve, reject) =>
+        this.db.serialize(() => {
+            this.db.run(
+                `insert or ignore into ids
+                (name, count) values
+                ("${id}", 0)`
+            );
+            this.db.get(
+                `select count
+                from ids
+                where name = "${id}"`,
+                (err, row) => {
+                    console.log(row);
+                    resolve(row ? row.count : 0)
+                }
+            );
+        })
+    );
+    console.log(this);
+    return null;
+};

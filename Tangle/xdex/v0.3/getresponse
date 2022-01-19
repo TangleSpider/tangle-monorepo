@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+module.exports = function(d) {
+    return {
+        id: require("getid").bind(this)(d)
+    };
+};
