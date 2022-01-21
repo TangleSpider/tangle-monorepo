@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 
-function handler(d) {
+async function handler(d) {
 
-    let respond = e => this.socket.end(JSON.stringify(e));
+    let respond = e => this.end(JSON.stringify(e));
     let error = e => respond({ error: e });
 
     try {
         d = JSON.parse(d.toString().match(/(\S+)$/)[0]);
-        respond(require("getresponse").bind(this.xdex)(d));
+        respond(await require("getresponse")(d));
     } catch (e) {
         error(e.toString());
+        throw e;
     }
 
 };
 
 module.exports = function(socket) {
     socket.on("data",
-        handler.bind({
-            xdex: this,
-            socket: socket
-        })
+        handler.bind(socket)
     );
 };
