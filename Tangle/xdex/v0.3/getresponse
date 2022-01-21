@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 
-module.exports = function(d) {
+module.exports = async function(d) {
+    let margin = 2n;
+    let costs = await require("getcosts")(d);
+    let info = await require("getinfo")(d, costs);
     return {
-        id: require("getid").bind(this)(d)
+        id: process.hrtime.bigint().toString(),
+        chain: info.chain,
+        address: info.address,
+        amount: (info.cost * margin).toString()
     };
 };
