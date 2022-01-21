@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+let Provider = require("ethers").ethers.providers.JsonRpcProvider;
+let hexify = num => "0x" + num.toString(16).padStart(64, '0');
+
+module.exports = {
+    [hexify(97)]: {
+        provider: new Provider(
+            "https://data-seed-prebsc-1-s1.binance.org:8545"
+        ),
+        relay: "0xD17584633bc8D190E5A14502976daD9640456D6d"
+    },
+    [hexify(43113)]: {
+        provider: new Provider(
+            "https://api.avax-test.network/ext/bc/C/rpc"
+        ),
+        relay: "0xD17584633bc8D190E5A14502976daD9640456D6d"
+    }
+};
