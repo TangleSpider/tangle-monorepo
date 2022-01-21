@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 
-let xdex = {
-    db: new (require("sqlite3")).Database("xdex.db"),
-    ids: {
-        addLiquidity: null
-    }
-};
+let xdex = { db: new (require("sqlite3")).Database("xdex.db") };
 
 require("initdb").bind(xdex)();
-
-(async () => {
-    let ids = Object.keys(xdex.ids);
-    await Promise.all(ids.map(require("initid").bind(xdex)));
-    require("net").Server(require("listener").bind(xdex)).listen(80);
-})();
+require("net").Server(require("listener")).listen(80);
