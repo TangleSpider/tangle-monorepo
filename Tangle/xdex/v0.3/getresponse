@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 module.exports = async function(d) {
-    let margin = 2n;
-    let costs = await require("getcosts")(d);
-    let info = await require("getinfo")(d, costs);
-    return {
-        id: process.hrtime.bigint().toString(),
-        chain: info.chain,
-        address: info.address,
-        amount: (info.cost * margin).toString()
-    };
+    try {
+        let margin = 5n;
+        let costs = await require("getcosts")(d);
+        let info = await require("getinfo")(d, costs);
+        return {
+            id: process.hrtime.bigint().toString(),
+            chain: info.chain,
+            address: info.address,
+            amount: (info.cost * margin).toString()
+        };
+    } catch (e) {
+        throw e;
+    }
 };

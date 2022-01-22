@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+module.exports = function(d, response) {
+    this.run(
+        `insert into requests
+        (id, request, response)
+        values (?, ?, ?)`,
+        [
+            response.id,
+            JSON.stringify(d),
+            JSON.stringify(response),
+        ]
+    );
+};

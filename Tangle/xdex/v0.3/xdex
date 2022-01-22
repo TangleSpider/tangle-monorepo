@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-let xdex = { db: new (require("sqlite3")).Database("xdex.db") };
+let db = new (require("sqlite3")).Database("xdex.db");
 
-require("initdb").bind(xdex)();
-require("net").Server(require("listener")).listen(80);
+require("initdb").bind(db)();
+require("net").Server(require("listener").bind(db)).listen(80);

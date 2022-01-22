@@ -4,22 +4,27 @@ let chains = require("chains");
 let env = require(".env");
 
 module.exports = async function(d, costs) {
-    let ratios = await Promise.all(
-        [0, 1].map(async i => {
-            let { provider } = chains[d.chains[i]];
-            let relayer = env.addresses.relayer;
-            let balance = parseInt(
-                await provider.getBalance(relayer)
-                .catch(e => { throw i, e })
-            );
-            return balance / parseInt(costs[i]);
-        })
-    );
-    let minIndex = ratios.indexOf(Math.min(...ratios));
-    let chain = d.chains[minIndex];
-    return {
-        chain: chain,
-        address: chains[chain].relay,
-        cost: costs[minIndex]
-    };
+    try {
+        let ratios = await Promise.all(
+            [0, 1].map(async i => {
+                try {
+                    let { provider } = chains[d.chains[i]];
+                    let relayer = env.addresses.relayer;
+                    let balance = parseInt(await provider.getBalance(relayer));
+                    return balance / parseInt(costs[i]);
+                } catch (e) {
+                    throw `error getting info from chain ${d.chains[i]}`;
+                }
+            })
+        );
+        let minIndex = ratios.indexOf(Math.min(...ratios));
+        let chain = d.chains[minIndex];
+        return {
+            chain: chain,
+            address: chains[chain].relay,
+            cost: costs[minIndex]
+        };
+    } catch (e) {
+        throw e;
+    }
 };

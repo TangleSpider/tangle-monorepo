@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ethers": "^5.5.3",
     "sqlite3": "^5.0.2"
   }
 }

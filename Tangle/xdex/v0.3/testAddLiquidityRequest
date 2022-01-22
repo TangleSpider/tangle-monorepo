@@ -1,0 +1,28 @@
+let body = JSON.stringify({
+    method: "addLiquidity",
+    chains: [
+        "0x" + "61".padStart(64, '0'),
+        "0x" + "a869".padStart(64, '0')
+    ],
+    tokens: [
+        "0xa943F863fA69ff4F6D9022843Fb861BBEe45B2ce",
+        "0xa943F863fA69ff4F6D9022843Fb861BBEe45B2ce"
+    ],
+    amountsDesired: [
+        "1000000000",
+        "2500000000"
+    ],
+    msgSender: "0x9De2b19dEaDBeeFB821D00c39289919DD5313566"
+});
+let options = {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: body
+};
+let sendTestAddLiquidityRequest = async () => {
+    let response = await (await fetch("http://192.168.0.3", options)).json();
+    console.log(response);
+    if (response.error) return sendTestAddLiquidityRequest();
+};

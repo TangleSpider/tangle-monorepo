@@ -2,14 +2,14 @@
 
 module.exports = function() {
     for (let table of require("tables")) {
-        this.db.serialize(() => {
+        this.serialize(() => {
             if (table.reset)
-                this.db.run(
+                this.run(
                     `drop table
                     if exists
                     ${table.name}`
                 );
-            this.db.run(
+            this.run(
                 `create table
                 if not exists
                 ${table.name} (${table.def})`

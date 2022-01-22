@@ -1,22 +1,19 @@
 #!/usr/bin/env node
 
 async function handler(d) {
-
-    let respond = e => this.end(JSON.stringify(e));
-    let error = e => respond({ error: e });
-
+    let respond = e => this.socket.end(JSON.stringify(e));
     try {
         d = JSON.parse(d.toString().match(/(\S+)$/)[0]);
-        respond(await require("getresponse")(d));
+        let response = await require("getresponse")(d);
+        require("updatedb").bind(this.db)(d, response);
+        respond(response);
     } catch (e) {
-        error(e.toString());
-        throw e;
+        respond({ error: e })
+        console.log({ error: e });
+        return;
     }
-
 };
 
 module.exports = function(socket) {
-    socket.on("data",
-        handler.bind(socket)
-    );
+    socket.on("data", handler.bind({ db: this, socket: socket }));
 };

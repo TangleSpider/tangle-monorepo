@@ -6,18 +6,26 @@ let chains = require("chains");
 let erc20abi = require("erc20abi");
 
 module.exports = async function(d) {
-    return await Promise.all([0, 1].map(async i => {
-        let provider = chains[d.chains[i]].provider;
-        let signer = new Wallet(env.keys.relayer, provider);
-        let erc20 = new Contract(d.tokens[i], erc20abi, signer);
-        let [ gas, feeData ] = await Promise.all([
-            erc20.estimateGas.transferFrom(
-                d.msgSender,
-                env.addresses.relayer,
-                d.amountsDesired[i]
-            ),
-            provider.getFeeData()
-        ]);
-        return BigInt(gas) * BigInt(feeData.gasPrice);
-    }));
+    try {
+        return await Promise.all([0, 1].map(async i => {
+            try {
+                let provider = chains[d.chains[i]].provider;
+                let signer = new Wallet(env.keys.relayer, provider);
+                let erc20 = new Contract(d.tokens[i], erc20abi, signer);
+                let [ gas, feeData ] = await Promise.all([
+                    erc20.estimateGas.transferFrom(
+                        d.msgSender,
+                        env.addresses.relayer,
+                        d.amountsDesired[i]
+                    ),
+                    provider.getFeeData()
+                ]);
+                return BigInt(gas) * BigInt(feeData.gasPrice);
+            } catch (e) {
+                throw `error getting cost from chain ${d.chains[i]}`;
+            }
+        }));
+    } catch (e) {
+        throw e;
+    }
 };
