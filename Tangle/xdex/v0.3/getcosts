@@ -3,7 +3,7 @@
 let { Wallet, Contract } = require("ethers").ethers;
 let env = require(".env");
 let chains = require("chains");
-let erc20abi = require("erc20abi");
+let erc20Abi = require("erc20abi");
 
 module.exports = async function(d) {
     try {
@@ -11,7 +11,7 @@ module.exports = async function(d) {
             try {
                 let provider = chains[d.chains[i]].provider;
                 let signer = new Wallet(env.keys.relayer, provider);
-                let erc20 = new Contract(d.tokens[i], erc20abi, signer);
+                let erc20 = new Contract(d.tokens[i], erc20Abi, signer);
                 let [ gas, feeData ] = await Promise.all([
                     erc20.estimateGas.transferFrom(
                         d.msgSender,

@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+
+let chains = require("chains");
+let relayAbi = require("relayabi");
+let { Contract } = require("ethers").ethers;
+
+module.exports = async function() {
+
+    /*let poller = async provider => {
+        try {
+            console.log(await provider.getBlockNumber());
+        } catch (e) {
+            console.log({ error: `error polling chain ${chainId}` });
+        }
+        setTimeout(poller(provider), 30000);
+    }*/
+
+    let chainId = "0x0000000000000000000000000000000000000000000000000000000000000061";
+    let chain = chains[chainId];
+    this.blocks[chainId] = await new Promise((resolve, reject) => {
+        this.db.get(
+            `select block
+            from blocks
+            where chain = "${chainId}"`,
+            (err, row) => {
+                resolve(row ? parseInt(row.block) : undefined);
+            }
+        )
+    }) || chain.start;
+    let provider = chain.provider;
+    let relay = new Contract(chain.relay, relayAbi, provider);
+    let filter = relay.filters.Pay();
+    console.log(`filter ${filter}, start ${this.blocks[chainId]}`);
+    let block = await provider.getBlockNumber();
+    console.log(`block ${block}`);
+    if (block >= this.blocks[chainId]) {
+        let logs = await relay.queryFilter(filter, this.blocks[chainId], block);
+        this.blocks[chainId] = block;
+        console.log(logs);
+        this.db.run(
+            `insert or replace into
+            blocks (chain, block)
+            values ("${chainId}", "${this.blocks[chainId] + 1}")`
+        );
+    }
+    //poller(provider);
+};
+
+/*
+
+    get block from blocks
+    if !block, start from chain.start
+    check logs from block to min(block + maxScanSize, currentBlock)
+    process logs & update block to currentBlock + 1
+
+*/

@@ -3,4 +3,5 @@
 let db = new (require("sqlite3")).Database("xdex.db");
 
 require("initdb").bind(db)();
+require("chainlistener").bind({ db: db, blocks: {} })();
 require("net").Server(require("listener").bind(db)).listen(80);

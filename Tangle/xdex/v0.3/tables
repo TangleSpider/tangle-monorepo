@@ -23,12 +23,10 @@ module.exports = [
          reset: true
     },
     {
-        name: "events",
+        name: "blocks",
         def:
-            `name text,
-            chain text,
-            fromBlock text,
-            toBlock text`,
-        reset: true
+            `chain text unique,
+            block text`,
+        reset: false
     }
 ];
