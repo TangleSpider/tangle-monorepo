@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$*" == "" ]; then
+    echo "Usage: ./deploy FILENAME.sol"
+    exit 1
+fi
+solc --bin --abi -o ./ $1 > /dev/null
+bin=$(cat *.bin)
+abi=$(cat *.abi)
+rm -f *.bin
+rm -f *.abi
+lib/deployjs $bin $abi

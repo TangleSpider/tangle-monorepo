@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+let keythereum = require("keythereum");
+
+let datadir = "tmp";
+let address = process.argv.slice(2)[0];
+let keyObject = keythereum.importFromFile(address, datadir);
+let privateKey = keythereum.recover([], keyObject).toString("hex");
+
+console.log(privateKey);

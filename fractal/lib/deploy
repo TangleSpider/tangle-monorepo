@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+let { ContractFactory } = require("@ethersproject/contracts");
+let { Wallet } = require("@ethersproject/wallet");
+let { getDefaultProvider } = require("@ethersproject/providers");
+let { toUtf8Bytes } = require("@ethersproject/strings");
+let [ bin, abi, key ] = process.argv.slice(2);
+abi = JSON.parse(abi);
+
+let provider = getDefaultProvider("http://localhost:8000");
+let wallet = new Wallet(key, provider);
+let factory = new ContractFactory(abi, bin, wallet);
+
+(async () => {
+    let requestCount = 0;
+    let currentBlock = 0;
+    let contract = await factory.deploy();
+    let handler = async blockNumber => {
+        let events = await contract.queryFilter(
+            "Request",
+            currentBlock,
+            blockNumber
+        );
+        currentBlock = blockNumber + 1;
+        console.log(
+            events
+        );
+        requestCount += events.length;
+        if (requestCount < 3) return;
+        provider.off("block", handler);
+    };
+    provider.on("block", handler);
+    await contract.deployTransaction.wait();
+    await contract.submitRequest(toUtf8Bytes("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean porta, urna a congue scelerisque, neque nunc elementum ligula, vitae lacinia libero erat eget nisl. Nullam ut tortor ac turpis aliquam iaculis ac in elit. Nam sed ligula ullamcorper, porta massa et, molestie dolor. Phasellus mi elit, ultrices sit amet mattis a, feugiat vel diam. Cras sed nisl semper, tempus lectus eget, egestas mi. Sed ut odio ut est aliquam aliquet sed sit amet dui. Pellentesque pellentesque hendrerit quam, vitae mattis ipsum iaculis in. Integer non rutrum risus. Nulla vitae turpis laoreet, finibus orci et, lobortis purus. Mauris sagittis neque at facilisis luctus. Phasellus id massa euismod, pulvinar turpis vel, convallis dolor. Donec quis leo cursus, varius eros euismod, sollicitudin mi."));
+    await contract.submitRequest(toUtf8Bytes("Fusce ut mauris neque. Praesent pretium semper sapien, euismod placerat nibh iaculis at. Duis finibus magna consequat sem pretium pulvinar. Curabitur laoreet, leo nec gravida faucibus, est mi cursus tortor, in aliquet lorem quam at massa. Sed scelerisque eget turpis ac sollicitudin. Aliquam dictum felis nunc, id condimentum massa maximus vitae. Fusce fringilla dictum aliquet."));
+    await contract.submitRequest(toUtf8Bytes("Pellentesque lectus massa, congue eu placerat auctor, tempor a mi. In pellentesque lorem suscipit, vehicula enim a, ultricies ligula. Ut tortor ex, posuere nec neque facilisis, finibus blandit erat. Quisque id est sit amet felis scelerisque accumsan. Ut et sagittis ipsum. Nullam sem nunc, sagittis ut quam suscipit, mattis blandit lacus. Nullam sit amet arcu sapien. Mauris ligula libero, sollicitudin eu placerat in, accumsan in dui. Nunc vulputate elementum feugiat. Aliquam sed convallis dui. Mauris egestas eu ante eu fringilla. Vestibulum est leo, ullamcorper id diam eget, aliquet semper magna. Aliquam ac consequat enim. Sed et lacus tristique, imperdiet ex id, sodales tortor. Maecenas sed gravida nisl, vitae vestibulum metus."));
+})();
