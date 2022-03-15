@@ -1,0 +1,66 @@
+//  Fractal is a system allowing accounts to swap assets from a start chain
+//  to a stop chain. Fractal is made up of Swap, Chain, Pay, and Stake
+//  accounts use Swap to control swaps
+//  Swap is a smart contract
+//  how does Fractal know if a swap is fulfilled? chains cannot communicate
+//  Chain decides if a swap is fulfilled. Chain is a chain. nodes are
+//  incentivized to add honest blocks to Chain. blocks contain information about
+//  swap status on stop chains
+//  would not a new chain require systems to transfer incentives to a chain
+//  where incentives can be converted into real assets?
+//  not if the new chain is a simulated chain existing on the swap start chain
+//  the chain would be simulated by a smart contract
+//  what stops an attacker from lying about a swaps fulfillment or fulfiller to
+//  gain an undeserved incentive?
+//  would not incentives need to be reverted if a block reorg on a stop chain
+//  reverts a fulfilled swap commited on Chain?
+//  consider how exchanges handle possible fraudulent or reverted block
+//  problems
+//  exchanges wait for a number of confirmed blocks before allowing an exchange
+//  from one asset to another
+//  Fractal can wait for a number of confirmed True blocks before allowing
+//  redemption of incentives
+//  incentives to be given in native start chain currency for efficiency
+//  incentives to be handled by Pay
+
+Fractal
+
+    //  handles transactions related to swaps
+    //  require checkSwap()
+    //  (
+    //      operation
+    //      optional payment if operation == start
+    //      destination details ([(asset, stop chain, stop address)...]) if operation == start
+    //      swap id if operation == stop
+    //  )
+    //  swap_id=>swap
+    //  swap {
+    //      id, escrow, status
+    //  }
+    swap
+
+    //  handles transactions related to chain
+    //  require msg.sender == validator()
+    //  (block)
+    chain
+
+    //  handles transactions related to incentive payments
+    //  (
+    //      block_id[],
+    //      swap_id[]
+    //  )
+    //      for block in block_id
+    //          if checkBlockPay()
+    //              pay block validator
+    //      for swap in swap_id
+    //          if checkSwapPay()
+    //              pay swap fulfiller
+    pay
+
+    //  handles transactions related to staking
+    //  (int stake change)
+    //  staked[address] +-
+    //  new_bucket = getBucket(staked[address])
+    //  if (new_bucket == bucket[msg.sender]) return
+    //  updateBucket(staker, new_bucket)
+    stake

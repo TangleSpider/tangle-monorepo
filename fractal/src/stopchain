@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# kill any processes using port 8000
+kill $( \
+    # get processes using port 8000
+    ss -lpH "sport = 8000" | \
+    # extract their PIDs
+    sed -rn "s/.*pid=([[:digit:]]+).*/\1/p" \
+) 2> /dev/null

@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+let { Contract } = require("@ethersproject/contracts");
+let { Wallet } = require("@ethersproject/wallet");
+let { getDefaultProvider } = require("@ethersproject/providers");
+
+let [ abi, key, deployed ] = process.argv.slice(2);
+abi = JSON.parse(abi)
+let provider = getDefaultProvider("http://localhost:8000");
+provider.pollingInterval = 10;
+let wallet = new Wallet(key, provider);
+let contract = new Contract(deployed, abi, wallet);
+
+(async () => {
+    let o_block = await provider.getBlockNumber();
+    let counter = 0;
+    let dict = {};
+    while (counter < 1000) {
+        let block = await provider.getBlockNumber();
+        if (block != o_block) {
+            let fractalRand = (await contract.fractalRand()).toString();
+            if (!dict[fractalRand]) dict[fractalRand] = 0;
+            dict[fractalRand]++;
+            console.clear();
+            console.log(dict);
+            counter++;
+            o_block = block;
+        }
+        await new Promise((resolve, reject) => {
+            setTimeout(() => { resolve(null); }, 20);
+        });
+    }
+})();

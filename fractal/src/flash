@@ -5,7 +5,7 @@ pid=$( \
     ss -lpH "sport = 8000" | \
     sed -rn "s/.*pid=([[:digit:]]+).*/\1/p" \
 )
-if [ ${pid} ]; then kill ${pid}; fi
+if [[ ${pid} ]]; then kill ${pid}; fi
 echo "removing tmp if exists"
 while [ -d "tmp" ]
 do
@@ -14,9 +14,9 @@ do
 done
 mkdir tmp
 echo "compiling sol files, extracting bin and abi"
-solc --bin --abi -o tmp *.sol > /dev/null
-bin=$(cat tmp/*.bin)
-abi=$(cat tmp/*.abi)
+solc --bin --abi -o tmp $1 > /dev/null
+bin=$(cat tmp/$2.bin)
+abi=$(cat tmp/$2.abi)
 echo "" > tmp/password
 echo "generating new address"
 address=$(sed -rn "s/.*0x([[:alnum:]]+).*/\1/p" <<< $( \
@@ -28,7 +28,8 @@ address=$(sed -rn "s/.*0x([[:alnum:]]+).*/\1/p" <<< $( \
     ))
 key=$(lib/getkey $address)
 echo "creating genesis.json"
-echo '{"config":{"chainId":CHAIN,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"clique":{"period":5,"epoch":30000}},"difficulty":"1","gasLimit":"8000000","extradata":"0x0000000000000000000000000000000000000000000000000000000000000000ADDRESS0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","alloc":{"ADDRESS":{"balance":"100000000000000000000000"}}}' | \
+lib/powgen $address # create genesis.json for Proof-of-Work chain
+echo '{"config":{"chainId":CHAIN,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"ethash":{}},"difficulty":"1","gasLimit":"8000000","alloc":{"ADDRESS":{"balance":"100000000000000000000000"}}}' | \
     sed "s/ADDRESS/$address/g" | \
     sed "s/CHAIN/8000/" > \
     tmp/genesis.json
@@ -38,28 +39,11 @@ geth \
     --datadir tmp \
     init tmp/genesis.json
 echo "starting geth"
-geth \
-    --verbosity 2 \
-    --port 30300 \
-    --http \
-    --http.addr 0.0.0.0 \
-    --http.port "8000" \
-    --http.corsdomain "*" \
-    --datadir tmp \
-    --http.api "net,web3,eth,personal" \
-    --mine \
-    --miner.threads 1 \
-    --miner.etherbase 0x$address \
-    --unlock 0x$address \
-    --password tmp/password \
-    --allow-insecure-unlock \
-    --networkid 8000 \
-    --netrestrict 127.0.0.1/32,192.168.0.0/24 \
-    2>> tmp/logs & disown
+lib/cgeth $address # start chain with CPU mining
 while [ ! "$(ss -plH "sport = 8000")" ]; do sleep 0.1; done
 
 # CHAIN IS NOW LIVE
-lib/deploy $bin $abi $key
+time lib/deploy $bin "$abi" $key
 # CHAIN SHUTTING DOWN
 
 echo "killing processes using port 8000"

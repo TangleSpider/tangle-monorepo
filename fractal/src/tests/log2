@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+let { Contract } = require("@ethersproject/contracts");
+let { Wallet } = require("@ethersproject/wallet");
+let { getDefaultProvider } = require("@ethersproject/providers");
+
+let [ abi, key, deployed ] = process.argv.slice(2);
+abi = JSON.parse(abi)
+let provider = getDefaultProvider("http://localhost:8000");
+provider.pollingInterval = 100;
+let wallet = new Wallet(key, provider);
+let contract = new Contract(deployed, abi, wallet);
+
+(async () => {
+    for (let i = 0n; i < 256n; i++) {
+        console.log((await contract.log2(1n << i)).toString());
+        if (i.toString() != (await contract.log2(1n << i)).toString()) {
+            console.log("!!!");
+        }
+    }
+})();
