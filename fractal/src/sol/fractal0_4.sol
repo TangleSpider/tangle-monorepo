@@ -4,6 +4,7 @@ pragma solidity ^0.8.12;
 contract Fractal {
 
     using ValLib for Val;
+    using MathLib for uint;
 
     function stake() external payable {
         require(msg.value > 0);
@@ -21,6 +22,17 @@ contract Fractal {
         val.stake -= amount;
         payable(msg.sender).transfer(amount);
         val.update();
+    }
+
+    function pick() external returns (address) {
+        uint8[] storage cans = StuffLib.getStuff().cans;
+        require(cans.length == 0);
+        uint rand = uint(blockhash(block.number - 1));
+        uint8 x = rand.log2();
+        mapping(uint8 => Can) storage itoc = StuffLib.getStuff().itoc;
+        Can storage can = itoc[cans[x < cans.length ? cans[x] : cans[0]]];
+        uint index = x % can.vals.length;
+        return can.vals[index];
     }
 
     function getCans() external view returns (uint8[] memory) {
