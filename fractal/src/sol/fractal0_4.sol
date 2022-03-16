@@ -4,7 +4,6 @@ pragma solidity ^0.8.12;
 contract Fractal {
 
     using ValLib for Val;
-    using MathLib for uint;
 
     function stake() external payable {
         require(msg.value > 0);
