@@ -1,0 +1,18 @@
+Enable autoconnect: Yes/No  }   GateKeeper
+Connect button              }
+
+if autoconnect enabled, don't show connect button
+if connected, don't show connect button
+
+if autoconnect changed to enabled and not connected, submit connection request
+if autoconnect changed to disabled and connected, do nothing
+
+update localStorage.autoconnect to reflect autoconnect settings
+
+handle all wallets disconnecting
+
+account/balance/other only appears if connected
+
+account/balance/other } Connected
+
+GateKeeper <- Connected
