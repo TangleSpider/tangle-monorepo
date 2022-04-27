@@ -1,0 +1,35 @@
+#!/bin/bash
+cd $(dirname $0)/../src
+export PATH="$PATH:$(pwd)"
+export CACHE=../cache
+export KEYSTORE="$CACHE/keystore"
+export LCD="$CACHE/geth/lightchaindata"
+
+case $1 in
+    log2)
+        solfile=fractal0_2.sol
+        contract=Fractal
+        ;;
+    fractalRand)
+        solfile=fractal0_2.sol
+        contract=Fractal
+        ;;
+    *)
+        echo "unknown test case"
+        exit 1
+        ;;
+esac
+
+echo "compiling and retrieving bin/abi of $solfile:$contract"
+read -r bin abi < <(compile $solfile $contract)
+echo "initializing chain"
+address=$(initchain)
+key=$(getkey $address)
+echo "starting chain"
+startchain $address
+echo "deploying contract"
+time deployed=$(deploy $bin "$abi" $key)
+echo "TODO: run test"
+time tests/$1 "$abi" $key $deployed
+echo "stopping chain"
+stopchain

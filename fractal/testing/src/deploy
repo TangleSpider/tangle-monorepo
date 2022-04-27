@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+let { ContractFactory } = require("@ethersproject/contracts");
+let { Wallet } = require("@ethersproject/wallet");
+let { getDefaultProvider } = require("@ethersproject/providers");
+
+let [ bin, abi, key ] = process.argv.slice(2);
+abi = JSON.parse(abi)
+let provider = getDefaultProvider("http://localhost:8000");
+provider.pollingInterval = 100;
+let wallet = new Wallet(key, provider);
+let factory = new ContractFactory(abi, bin, wallet);
+
+(async () => {
+    let contract = await factory.deploy();
+    await contract.deployTransaction.wait();
+    console.log(contract.address);
+})();

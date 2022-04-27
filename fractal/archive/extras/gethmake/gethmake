@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+src=../go-ethereum-1.10.16
+bin=$src/build/bin
+consensus=$src/consensus
+clique=$consensus/clique
+ethash=$consensus/ethash
+cat $clique/clique_template | \
+    sed "s/&value&/$1/" \
+    > $clique/clique.go
+cat $ethash/consensus_template | \
+    sed "s/&value&/$1/" \
+    > $ethash/consensus.go
+if [ -f $bin/geth ]; then
+    rm $bin/geth
+fi
+cd $src
+make -s > /dev/null 2>&1
+cd $bin
+cp geth /usr/local/bin/geth

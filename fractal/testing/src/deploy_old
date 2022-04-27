@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+let { ok } = require("assert");
+let { ContractFactory } = require("@ethersproject/contracts");
+let { Wallet } = require("@ethersproject/wallet");
+let { getDefaultProvider } = require("@ethersproject/providers");
+let { toUtf8Bytes } = require("@ethersproject/strings");
+let { BigNumber } = require("@ethersproject/bignumber");
+
+const ZADDR = "0x0000000000000000000000000000000000000000";
+
+let [ bin, abi, key ] = process.argv.slice(2);
+abi = JSON.parse(abi)
+let provider = getDefaultProvider("http://localhost:8000");
+provider.pollingInterval = 10;
+let wallet = new Wallet(key, provider);
+let factory = new ContractFactory(abi, bin, wallet);
+
+let target = toUtf8Bytes("targetdetails");
+let payments = [
+    ["0x0000000000000000000000000000000000000001", "100"]
+];
+let expiration = parseInt(Date.now() / 1000) + 3600;
+let overrides = { value: "500000000000000000" };
+
+(async () => {
+    let contract = await factory.deploy();
+    await contract.deployTransaction.wait();
+    let txr = await contract.openSwap(
+        target,
+        payments,
+        expiration,
+        overrides
+    );
+    txr = await txr.wait();
+    let swapId = txr.logs[0].data;
+    let swap = await contract.getSwap(swapId);
+    ok(
+        swap.target == `0x${Buffer.from(target).toString("hex")}`,
+        "swap.target not equal to target"
+    );
+    console.log("target match success");
+    if (overrides.value) payments.push([ZADDR, overrides.value]);
+    console.log(swap.escrow.toString(), payments.toString());
+    console.log(swap.escrow.toString() == payments.toString());
+    /*payments.forEach(p => {
+        console.log(swaps
+    });*/
+})();

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# kill any processes using port 8000
+kill $( \
+    # get processes using port 8000
+    ss -lpH "sport = 8000" | \
+    # extract their PIDs
+    sed -rn "s/.*pid=([[:digit:]]+).*/\1/p" \
+) 2> /dev/null
+
+# remove cache if it does exist
+rm -r $CACHE
+
+# create cache/keystore/ if it doesn't exist
+mkdir -p $KEYSTORE
+
+# check if cache/keystore/ is empty
+[ $(ls -A $KEYSTORE) ] && \
+    # if not empty, get address from first entry in cache/keystore/
+        address=$(ls -A $KEYSTORE | sed -rn "s/.*--(.*)$/\1/p") || \
+    # if empty, get address from newly generated account
+        address=$(geth \
+            --verbosity 2 \
+            account new \
+            --datadir $CACHE \
+            --password <(echo "") | \
+            sed -rn "s/.*0x([[:alnum:]]+).*/\1/p")
+
+# create genesis.json and store it in cache
+echo "$(cat genesis-template.json | sed "s/ADDRESS/$address/g")" > \
+    $CACHE/genesis.json
+
+# init chain if no cache/geth/lightchaindata
+[ ! -d $LCD ] && \
+    geth \
+        --verbosity 2 \
+        init \
+        --datadir $CACHE $CACHE/genesis.json
+
+echo $address

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+contractdata=$(solc --abi --bin sol/$1 |
+    sed -rn "/./{H;\$!d};x;s/.*?$1:$2[^\n]*\n(.*)/\1/p" |
+    sed '/./{H;$!d};x;s/\n/%/g')
+bin=$(echo $contractdata | sed -rn 's/%Binary:%([^%]*?)%.*/\1/p')
+abi=$(echo $contractdata | sed -rn 's/.*?%Contract JSON ABI%(.*)/\1/p')
+echo $bin $abi

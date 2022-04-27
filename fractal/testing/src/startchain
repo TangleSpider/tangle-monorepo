@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# start geth instance
+geth \
+    --port 30303 \
+    --mine \
+    --miner.threads 1 \
+    --miner.etherbase 0x00000000000000000000000000000000deadbeef \
+    --http \
+    --http.addr 0.0.0.0 \
+    --http.port "8000" \
+    --http.corsdomain localhost \
+    --datadir $CACHE \
+    --http.api "net,web3,eth,personal,miner" \
+    --networkid 8000 \
+    --netrestrict 127.0.0.1/32 \
+    --nodiscover \
+    --allow-insecure-unlock \
+    --unlock 0x$1 \
+    --password <(echo "") \
+     2>> /dev/null &
+
+ # wait for geth to start using port
+ while [ ! "$(ss -plH "sport = 8000")" ]; do sleep 0.01; done
