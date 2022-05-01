@@ -1,18 +1,107 @@
-Enable autoconnect: Yes/No  }   GateKeeper
-Connect button              }
+need some system for modifying the inputs of web3 functions extracted from ABIs
+want it to be very simple
+like creating a list that says "this function's input should be disabled to
+to the user, and should be a constant value"
+or
+"this function's input is disabled to the user, and should depend on the
+input to another function"
+function inputs should persist, shouldn't be reset when switching
+"this function's input is equal to some variable, disabled to user"
 
-if autoconnect enabled, don't show connect button
-if connected, don't show connect button
+some system/language/standard for goods input
+chainId: first 2 bytes
+assetAddress: next 20 bytes
+assetAmount: next 32 bytes
+total is 54 bytes
+       chainId assetAddress assetAmount
+Bytes | 1 - 2 |   3 - 22   |  23 - 54  |
 
-if autoconnect changed to enabled and not connected, submit connection request
-if autoconnect changed to disabled and connected, do nothing
+assetAddress of all zeroes indicates native currency
 
-update localStorage.autoconnect to reflect autoconnect settings
+so 0.010000000000000000 ETH is
+ chainId                 assetAddress                                           assetAmount
+|  0001  | 0000000000000000000000000000000000000000 | 000000000000000000000000000000000000000000000000002386f26fc10000 |
+or
+00010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002386f26fc10000
 
-handle all wallets disconnecting
+150,000,000.000000000 FTM-TNGL is
 
-account/balance/other only appears if connected
+|  00fa  | d17584633bc8d190e5a14502976dad9640456d6d | 0000000000000000000000000000000000000000000000000214e8348c4f0000 |
+or
+00fad17584633bc8d190e5a14502976dad9640456d6d0000000000000000000000000000000000000000000000000214e8348c4f0000
 
-account/balance/other } Connected
+above is for later efficiency
 
-GateKeeper <- Connected
+for ease of use and speed, we will probably just make the payload JSON
+{
+    chainId: 0x1,
+    assetAddress: null,
+    assetAmount: 0.01
+}
+stringify it, then convert it to a Uint8Array
+
+like
+
+Array.from(new TextEncoder().encode(JSON.stringify({
+    chainId: 0x1,
+    assetAddress: null,
+    assetAmount: 0.01
+}))).map(byte => byte.toString(16)).join('')
+returns
+7b22636861696e4964223a312c22617373657441646472657373223a6e756c6c2c226173736574416d6f756e74223a302e30317d
+
+JSON.parse(new TextDecoder().decode(Uint8Array.from(Array.from("7b22636861696e4964223a312c22617373657441646472657373223a6e756c6c2c226173736574416d6f756e74223a302e30317d").reduce(
+    (p, c, i) => (i % 2 ? p[p.length - 1] += c : p.push([c])) && p, []
+).map(byteLiteral => parseInt("0x" + byteLiteral)))))
+returns
+{
+    chainId: 0x1,
+    assetAddress: null,
+    assetAmount: 0.01
+}
+
+or
+
+obj
+byt
+
+Array.from(
+    new TextEncoder().encode(
+        JSON.stringify(obj)
+    )
+)
+.map(byte => byte.toString(16))
+.join('')
+
+returns byt
+
+JSON.parse(
+    new TextDecoder().decode(
+        Uint8Array.from(
+            Array.from(byt)
+            .reduce((p, c, i) =>
+                (i % 2 ? p[p.length - 1] += c : p.push([c])) && p, []
+            )
+            .map(byteLiteral => parseInt("0x" + byteLiteral))
+        )
+    )
+)
+
+returns obj
+
+can process 100+KB of info in << 1 second
+
+goods should be disabled, but populated by chain, coin/token, amount fields
+    solved by modifying contract so that goods is a struct containing chain,
+    asset, and amount
+proposer should be disabled, should default to ethereum.selectedAddress
+    solved, couple of switch statements in InputSingle
+party should be buyer or seller
+    makes me rething "solving" the goods issue, now there are two things that
+    could benefit from a system that injects a component when manually
+    specified for an InputSingle, component could be anything and would
+    emit a value that the InputSingle listens to and uses to update itself
+fee can be any number, preferably native amount formatted
+time can be any number, preferably datetime picker
+cost like fee
+work can be any number

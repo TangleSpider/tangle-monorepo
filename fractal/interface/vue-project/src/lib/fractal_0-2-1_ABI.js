@@ -146,4 +146,4 @@ export default [
 		"stateMutability": "payable",
 		"type": "function"
 	}
-];
+]
